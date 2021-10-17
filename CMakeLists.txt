@@ -113,6 +113,7 @@ src/misc/char_selector.cpp
 src/misc/CharacterAssetManager.cpp
 src/misc/stage_selector.cpp
 src/systems/AttackPowerMechanicSystem.cpp
+src/systems/CraftingSystem.cpp
 src/systems/PlayerDeathSystem.cpp
 src/systems/PhysicsSystem.cpp
 src/systems/CameraSystem.cpp

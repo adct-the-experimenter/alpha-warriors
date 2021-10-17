@@ -159,6 +159,9 @@ struct Player
 	//indicate if player pressed regular attack button
 	bool regularAttackButtonPressed;
 	
+	//indicate if player pressed craft button
+	bool craftButtonPressed;
+	
 	//bitset to indicate which power a player has
 	std::bitset <8> collected_powers;
 	

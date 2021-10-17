@@ -9,6 +9,7 @@
 #include "systems/RenderSystem.h"
 #include "systems/AnimationSystem.h"
 #include "systems/AttackPowerMechanicSystem.h"
+#include "systems/CraftingSystem.h"
 #include "systems/PlayerDeathSystem.h"
 
 #include "systems/WorldSystem.h"
@@ -72,6 +73,8 @@ std::shared_ptr <InputReactorSystem> input_ReactSystem;
 std::shared_ptr <PhysicsSystem> physicsSystem;
 
 std::shared_ptr <AttackPowerMechanicSystem> attackPowerMechanicSystem;
+
+std::shared_ptr <CraftingSystem> craftingSystem;
 
 std::shared_ptr <PlayerDeathSystem> playerDeathSystem;
 
@@ -557,6 +560,9 @@ void logic()
 			//set up frame for render
 			animationSystem->Update(dt);
 			
+			//handle crafting
+			craftingSystem->HandleCrafting();
+			
 			//check for dead players, set bool to stop rendering them
 			playerDeathSystem->Update();
 			
@@ -930,6 +936,16 @@ void InitMainECS()
 	special_power_mechanic_sig.set(gCoordinator.GetComponentType<GeneralEnityState>());
 	gCoordinator.SetSystemSignature<AttackPowerMechanicSystem>(special_power_mechanic_sig);
 	
+	//make crafting system
+	
+	craftingSystem = gCoordinator.RegisterSystem <CraftingSystem>();
+	
+	Signature crafting_system_sig;
+	crafting_system_sig.set( gCoordinator.GetComponentType<Player>() );
+	crafting_system_sig.set( gCoordinator.GetComponentType<Animation>() );
+	crafting_system_sig.set( gCoordinator.GetComponentType<Transform2D>() );
+	
+	gCoordinator.SetSystemSignature<CraftingSystem>(crafting_system_sig);
 	
 	//make player death system
 	

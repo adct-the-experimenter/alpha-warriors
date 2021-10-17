@@ -6,7 +6,7 @@
 
 extern Coordinator gCoordinator;
 
-float speed_factor = 100.0f;
+float speed_factor = 200.0f;
 
 static const int16_t joystick_border = 32600;
 static const int16_t joystick_border_analog = 10000;
@@ -154,7 +154,11 @@ void InputReactorSystem::Update(ControllerInput& input)
 						{
 							player.regularAttackButtonPressed = true;
 						}
-						
+						//if craft button pressed, any of the trigger buttons
+						if(input.gamepads_vec[i].button_up_released == SDL_CONTROLLER_BUTTON_X)
+						{
+							player.craftButtonPressed = true;
+						}
 						
 					}
 					

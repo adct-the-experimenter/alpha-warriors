@@ -597,6 +597,14 @@ void PhysicsSystem::Update_VersusMode(float& dt)
 					jumpVel = 0;
 				}
 				
+				//if entity is flying and performing a no move attack, stop player.
+				if(gen_entity_state.actor_state == EntityState::ATTACKING_NO_MOVE && 
+				   rigidBody.in_flying_state)
+				{
+					rigidBody.velocity.x = 0;
+					rigidBody.velocity.y = 0;
+				}
+				
 				//if jumping
 				if(jumpVel < 0 && !rigidBody.in_flying_state)
 				{					
@@ -676,6 +684,14 @@ void PhysicsSystem::Update_MetroidVaniaMode(float& dt)
 				if(physics_type_comp.jump_count >= 1 || gen_entity_state.actor_state == EntityState::ATTACKING_NO_MOVE)
 				{
 					jumpVel = 0;
+				}
+				
+				//if entity is flying and performing a no move attack, stop player.
+				if(gen_entity_state.actor_state == EntityState::ATTACKING_NO_MOVE && 
+				   rigidBody.in_flying_state)
+				{
+					rigidBody.velocity.x = 0;
+					rigidBody.velocity.y = 0;
 				}
 				
 				//if jumping
