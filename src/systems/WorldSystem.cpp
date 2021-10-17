@@ -379,6 +379,7 @@ void WorldSystem::logic(float& dt)
 		//get world that player is in
 		//get player location in world
 		
+		
 		//if player collides with transportation
 			//handle transportation of players
 			
@@ -390,6 +391,7 @@ void WorldSystem::logic(float& dt)
 			//change player location in world
 			
 			//set which camera player is in
+		
 	}
 			
 }

@@ -551,6 +551,8 @@ void logic()
 			//react to collisions
 			attackPowerMechanicSystem->ReactToCollisions(dt);
 			
+			//destroy tiles if player attack box collides with it
+			attackPowerMechanicSystem->HandleCollisionBetweenPlayerAttacksAndWorldTiles();
 			
 			//set up frame for render
 			animationSystem->Update(dt);

@@ -6,6 +6,8 @@
 
 #include <queue>
 
+#include "misc/level_maps.h"
+
 struct PowerTransferTransaction
 {
 	std::uint8_t receivingPlayer = 0;
@@ -29,11 +31,14 @@ public:
 	
 	void MoveAttackBoxesWithPlayer(float& dt);
 	
-	void PerformNeededPowerTransactions();
-	
+	//for checking collision between attack box  and player
 	void CollisionDetectionBetweenPlayers();
 	
+	//for setting player reaction to attack
 	void ReactToCollisions(float& dt);
+	
+	//for destruction of tiles
+	void HandleCollisionBetweenPlayerAttacksAndWorldTiles();
 	
 	void DebugRender();
 	

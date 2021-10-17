@@ -6,6 +6,8 @@
 
 #include <iostream>
 
+#include <cmath>
+
 extern Coordinator gCoordinator;
 
 
@@ -367,53 +369,7 @@ void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 	
 }
 
-void AttackPowerMechanicSystem::PerformNeededPowerTransactions()
-{
-	
-	//power steal mechanic here
-	
-	for (auto const& entity : mEntities)
-	{
-		auto& player = gCoordinator.GetComponent<Player>(entity);
-		
-		//if player health is at 0
-		//check which player had the last collision detection with this player
-		if(player.player_health <= 0 && player.last_hit_by_player_num != 0)
-		{
-			player.alive = false;
-			
-			//push power transaction to queue
-			
-			PowerTransferTransaction pT;
-			pT.receivingPlayer = player.last_hit_by_player_num;
-			pT.powerTransfered = player.collected_powers;
-			
-			power_transfer_transaction_queue.push(pT);
-			
-			//set last player hit number to zero
-			player.last_hit_by_player_num = 0;
-		}
-	}
-	
-			
-	//perform power transfer based on info from queue
-	while(!power_transfer_transaction_queue.empty())
-	{
-		for (auto const& entity : mEntities)
-		{
-			auto& player = gCoordinator.GetComponent<Player>(entity);
-			
-			//if player is the one that must receive power
-			if(power_transfer_transaction_queue.front().receivingPlayer == player.player_num)
-			{
-				//OR player collected power bits with the transfered power bits
-				player.collected_powers |= power_transfer_transaction_queue.front().powerTransfered;
-				power_transfer_transaction_queue.pop();
-				
-			}
-		}
-	}
-}
+
 
 static bool PlayerCollisionWithRectangleDetected(Rectangle& rect,
 						   float& obj_x, float& obj_y, std::uint32_t& obj_width, std::uint32_t& obj_height)
@@ -917,4 +873,143 @@ void AttackPowerMechanicSystem::DebugRender()
 		}
 		
 	}
+}
+
+static bool CollisionWithTileDetected(float tile_x,float tile_y,
+						   float& obj_x, float& obj_y, float& obj_width, float& obj_height)
+{
+	//assuming object has width and height of 30 and it is centered
+	float tile_width = 30;
+	float tile_height = 30;
+	
+	float objLeftX = obj_x;
+	float objRightX = obj_x + obj_width;
+	float objTopY = obj_y;
+	float objBottomY = obj_y + obj_height;
+	
+	std::uint32_t rectLeftX = tile_x;
+	std::uint32_t rectRightX = tile_x + tile_width;
+	std::uint32_t rectTopY = tile_y;
+	std::uint32_t rectBottomY = tile_y + tile_height;
+	
+	//for collision to be true, all conditions must be true. AABB square collsion detection, all
+	//The left edge x-position of [A] must be less than the right edge x-position of [B].
+    //The right edge x-position of [A] must be greater than the left edge x-position of [B].
+    //The top edge y-position of [A] must be less than the bottom edge y-position of [B].
+    //The bottom edge y-position of [A] must be greater than the top edge y-position of [B].
+    
+    if(objBottomY <= rectTopY)
+	{
+		return false;
+	}
+	
+	if(objTopY >= rectBottomY)
+	{
+		return false;
+	}
+    
+    if(objRightX <= rectLeftX)
+	{
+		return false;
+	}
+	
+	if(objLeftX >= rectRightX)
+	{
+		return false;
+	}
+	
+	return true;
+}
+
+void AttackPowerMechanicSystem::HandleCollisionBetweenPlayerAttacksAndWorldTiles()
+{
+	//world
+	World* world_ptr = &world_one;
+	
+	//calculate tile that object is on
+	size_t num_tile_horizontal = 220;
+	
+	//for each player attack box
+	for (auto const& entity : mEntities)
+	{
+		
+		auto& player = gCoordinator.GetComponent<Player>(entity);
+		
+		float& obj_x = player.attack_box.collisionBox.x;
+		float& obj_y = player.attack_box.collisionBox.y;
+		float& obj_width = player.attack_box.collisionBox.width;
+		float& obj_height = player.attack_box.collisionBox.height;
+		
+		size_t horiz_index = trunc(obj_x / 30 );
+		size_t vert_index = trunc((obj_y + 30) / 30 ) * num_tile_horizontal;
+
+
+		size_t object_tile_index = horiz_index + vert_index; 
+
+		std::array <size_t,9> tiles_around_object;
+
+		if(object_tile_index > num_tile_horizontal)
+		{
+			tiles_around_object[0] = object_tile_index - num_tile_horizontal - 1;
+			tiles_around_object[1] = object_tile_index - num_tile_horizontal;
+			tiles_around_object[2] = object_tile_index - num_tile_horizontal + 1;
+		}
+		else
+		{
+			tiles_around_object[0] = 0;
+			tiles_around_object[1] = 0;
+			tiles_around_object[2] = 0;
+		}
+
+		if(object_tile_index > 0)
+		{
+			tiles_around_object[3] = object_tile_index - 1;
+		}
+		else
+		{
+			tiles_around_object[3] = 0;
+		}
+
+		tiles_around_object[4] = object_tile_index;
+
+		tiles_around_object[5] = object_tile_index + 1;
+
+		if(object_tile_index < num_tile_horizontal*219)
+		{
+			tiles_around_object[6] = object_tile_index + num_tile_horizontal - 1;
+			tiles_around_object[7] = object_tile_index + num_tile_horizontal;
+			tiles_around_object[8] = object_tile_index + num_tile_horizontal + 1;
+		}
+		else
+		{
+			tiles_around_object[6] = num_tile_horizontal*220 - 3;
+			tiles_around_object[7] = num_tile_horizontal*220 - 2;
+			tiles_around_object[8] = num_tile_horizontal*220 - 1;
+		}
+
+
+
+		//for tiles around player
+		for(size_t i = 0; i < tiles_around_object.size(); i++)
+		{
+			size_t& tile_index = tiles_around_object[i];
+			
+			if(world_ptr->tiles_vector[tile_index].type == TileType::PUSH_BACK)
+			{
+				//if player(obj) collides with a platforms
+				if(CollisionWithTileDetected(world_ptr->tiles_vector[tile_index].x,world_ptr->tiles_vector[tile_index].y,
+								   obj_x, obj_y, obj_width, obj_height) 
+					)
+				{
+					//change tile to passable background tile
+					world_ptr->tiles_vector[tile_index].type = TileType::BACKGROUND;
+					world_ptr->tiles_vector[tile_index].tile_id = 0;
+					world_ptr->tiles_vector[tile_index].frame_clip_ptr = &world_ptr->frame_clip_map[0];
+				}
+			}
+
+		}
+	}
+	
+	
 }
