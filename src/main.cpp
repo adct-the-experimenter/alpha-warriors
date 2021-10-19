@@ -416,6 +416,8 @@ void logic()
 						 
 						m_game_state = GameState::METROIDVANIA_GAME;
 						
+						attackPowerMechanicSystem->Init(gNumPlayers);
+						
 						worldSystem->SetPointerToCameraManager(&main_camera_manager);
 						
 						if(!worldSystem->Init())
@@ -988,7 +990,7 @@ void InitRaylibSystem()
 	SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_VSYNC_HINT | FLAG_MSAA_4X_HINT | FLAG_WINDOW_HIGHDPI); 
     
 	
-    InitWindow(screenWidth, screenHeight, "Thief Fighters");
+    InitWindow(screenWidth, screenHeight, "Alpha Warriors");
 	SetWindowMinSize(0.5*gameScreenWidth, 0.5*gameScreenHeight);
 	
 	// initialize SDL2 for gamepad handling
