@@ -300,7 +300,15 @@ static bool CollisionWithTileDetected(float tile_x,float tile_y,
 	return true;
 }
 
-static void CheckCollisionWithTiles(float& obj_x, float& obj_y, 
+static void HandleWorldTileCollision_Knockback_Destroy(size_t& tile_index, World* world_ptr)
+{
+	//change tile to passable background tile
+	world_ptr->tiles_vector[tile_index].type = TileType::BACKGROUND;
+	world_ptr->tiles_vector[tile_index].tile_id = 0;
+	world_ptr->tiles_vector[tile_index].frame_clip_ptr = &world_ptr->frame_clip_map[0];
+}
+
+static void HandleWorldTileCollision_Idle_Ground(size_t& tile_index,float& obj_x, float& obj_y, 
 										float& obj_vx, float& obj_vy, 
 										float& dt, 
 										std::uint32_t& obj_width,
@@ -308,69 +316,7 @@ static void CheckCollisionWithTiles(float& obj_x, float& obj_y,
 										bool& grounded,
 										World* world_ptr)
 {
-	
-	//calculate tile that object is on
-	size_t num_tile_horizontal = 220;
-	
-	
-	size_t horiz_index = trunc(obj_x / 30 );
-	size_t vert_index = trunc((obj_y + 30) / 30 ) * num_tile_horizontal;
-	
-	
-	size_t object_tile_index = horiz_index + vert_index; 
-	
-	std::array <size_t,9> tiles_around_object;
-	
-	if(object_tile_index > num_tile_horizontal)
-	{
-		tiles_around_object[0] = object_tile_index - num_tile_horizontal - 1;
-		tiles_around_object[1] = object_tile_index - num_tile_horizontal;
-		tiles_around_object[2] = object_tile_index - num_tile_horizontal + 1;
-	}
-	else
-	{
-		tiles_around_object[0] = 0;
-		tiles_around_object[1] = 0;
-		tiles_around_object[2] = 0;
-	}
-	
-	if(object_tile_index > 0)
-	{
-		tiles_around_object[3] = object_tile_index - 1;
-	}
-	else
-	{
-		tiles_around_object[3] = 0;
-	}
-	
-	tiles_around_object[4] = object_tile_index;
-	
-	tiles_around_object[5] = object_tile_index + 1;
-	
-	if(object_tile_index < num_tile_horizontal*219)
-	{
-		tiles_around_object[6] = object_tile_index + num_tile_horizontal - 1;
-		tiles_around_object[7] = object_tile_index + num_tile_horizontal;
-		tiles_around_object[8] = object_tile_index + num_tile_horizontal + 1;
-	}
-	else
-	{
-		tiles_around_object[6] = num_tile_horizontal*220 - 3;
-		tiles_around_object[7] = num_tile_horizontal*220 - 2;
-		tiles_around_object[8] = num_tile_horizontal*220 - 1;
-	}
-	
-	
-	
-	//for tiles
-	for(size_t i = 0; i < tiles_around_object.size(); i++)
-	{
-		size_t& tile_index = tiles_around_object[i];
-		
-		
-		if(world_ptr->tiles_vector[tile_index].type == TileType::PUSH_BACK)
-		{
-			//if player(obj) collides with a platforms
+	//if player(obj) collides with a platforms
 			if(CollisionWithTileDetected(world_ptr->tiles_vector[tile_index].x,world_ptr->tiles_vector[tile_index].y,
 							   obj_x, obj_y, obj_width, obj_height) 
 				)
@@ -471,6 +417,89 @@ static void CheckCollisionWithTiles(float& obj_x, float& obj_y,
 						
 					
 				}
+			}
+	
+}
+
+
+static void HandleCollisionWithWorldTiles(float& obj_x, float& obj_y, 
+										float& obj_vx, float& obj_vy, 
+										float& dt, 
+										std::uint32_t& obj_width,
+										std::uint32_t& obj_height,
+										bool& grounded,
+										World* world_ptr,
+										EntityState& entity_state)
+{
+	
+	//calculate tile that object is on
+	size_t num_tile_horizontal = 220;
+	
+	
+	size_t horiz_index = trunc(obj_x / 30 );
+	size_t vert_index = trunc((obj_y + 30) / 30 ) * num_tile_horizontal;
+	
+	
+	size_t object_tile_index = horiz_index + vert_index; 
+	
+	std::array <size_t,9> tiles_around_object;
+	
+	if(object_tile_index > num_tile_horizontal)
+	{
+		tiles_around_object[0] = object_tile_index - num_tile_horizontal - 1;
+		tiles_around_object[1] = object_tile_index - num_tile_horizontal;
+		tiles_around_object[2] = object_tile_index - num_tile_horizontal + 1;
+	}
+	else
+	{
+		tiles_around_object[0] = 0;
+		tiles_around_object[1] = 0;
+		tiles_around_object[2] = 0;
+	}
+	
+	if(object_tile_index > 0)
+	{
+		tiles_around_object[3] = object_tile_index - 1;
+	}
+	else
+	{
+		tiles_around_object[3] = 0;
+	}
+	
+	tiles_around_object[4] = object_tile_index;
+	
+	tiles_around_object[5] = object_tile_index + 1;
+	
+	if(object_tile_index < num_tile_horizontal*219)
+	{
+		tiles_around_object[6] = object_tile_index + num_tile_horizontal - 1;
+		tiles_around_object[7] = object_tile_index + num_tile_horizontal;
+		tiles_around_object[8] = object_tile_index + num_tile_horizontal + 1;
+	}
+	else
+	{
+		tiles_around_object[6] = num_tile_horizontal*220 - 3;
+		tiles_around_object[7] = num_tile_horizontal*220 - 2;
+		tiles_around_object[8] = num_tile_horizontal*220 - 1;
+	}
+	
+	
+	
+	//for tiles
+	for(size_t i = 0; i < tiles_around_object.size(); i++)
+	{
+		size_t& tile_index = tiles_around_object[i];
+		
+		
+		if(world_ptr->tiles_vector[tile_index].type == TileType::PUSH_BACK)
+		{
+			if(entity_state == EntityState::NONE)
+			{
+				HandleWorldTileCollision_Idle_Ground(tile_index,obj_x,obj_y,obj_vx,obj_vy,dt,obj_width,obj_height,grounded,world_ptr);
+			}
+			else if(entity_state == EntityState::HURTING_KNOCKBACK)
+			{
+				HandleWorldTileCollision_Knockback_Destroy(tile_index,world_ptr);
 			}
 		}
 
@@ -667,12 +696,11 @@ void PhysicsSystem::Update_MetroidVaniaMode(float& dt)
 		auto& transform = gCoordinator.GetComponent<Transform2D>(entity);
 		auto& physics_type_comp = gCoordinator.GetComponent<PhysicsTypeComponent>(entity);
 		auto& collisionBox = gCoordinator.GetComponent<CollisionBox>(entity);
+		auto& gen_entity_state = gCoordinator.GetComponent<GeneralEnityState>(entity);
 		
 		// Forces
 		auto const& gravity = gCoordinator.GetComponent<Gravity2D>(entity);
-		
-		auto& gen_entity_state = gCoordinator.GetComponent<GeneralEnityState>(entity);
-		
+				
 		switch(physics_type_comp.phy_type)
 		{
 			case PhysicsType::PLATFORMER:
@@ -724,12 +752,13 @@ void PhysicsSystem::Update_MetroidVaniaMode(float& dt)
 					if(collisionBox.world_id == 0)
 					{
 						
-						CheckCollisionWithTiles(transform.position.x, transform.position.y,
+						HandleCollisionWithWorldTiles(transform.position.x, transform.position.y,
 											rigidBody.velocity.x, rigidBody.velocity.y,
 											dt,
 											collisionBox.width, collisionBox.height,
 											physics_type_comp.grounded,
-											&world_one);
+											&world_one,
+											gen_entity_state.actor_state);
 					}
 					
 				}

@@ -30,7 +30,7 @@ void InputReactorSystem::Update(ControllerInput& input)
 				//get other player specific component from entity.
 				
 				size_t i = player.player_num - 1;
-				//if player number matches game pad
+				//if player not in hurting state
 				if(player.state != PlayerState::HURTING)
 				{
 					//if player's body is in flying state

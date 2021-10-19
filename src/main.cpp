@@ -544,9 +544,6 @@ void logic()
 			//handle activating powers based on input
 			attackPowerMechanicSystem->HandlePowerActivation(dt);
 			
-			//move players and other entities
-			physicsSystem->Update_MetroidVaniaMode(dt);
-			
 			//move attack boxes with players
 			attackPowerMechanicSystem->MoveAttackBoxesWithPlayer(dt);
 			
@@ -561,6 +558,9 @@ void logic()
 			
 			//set up frame for render
 			animationSystem->Update(dt);
+			
+			//move players and other entities
+			physicsSystem->Update_MetroidVaniaMode(dt);
 			
 			//handle crafting
 			craftingSystem->HandleCrafting();

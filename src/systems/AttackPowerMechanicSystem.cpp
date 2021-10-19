@@ -33,7 +33,6 @@ void AttackPowerMechanicSystem::Init(std::uint8_t num_players)
 		auto& player = gCoordinator.GetComponent<Player>(entity);
 		auto& transform = gCoordinator.GetComponent<Transform2D>(entity);
 		auto& sound_comp = gCoordinator.GetComponent<SoundComponent>(entity);
-		auto& rigidBody = gCoordinator.GetComponent<RigidBody2D>(entity);
 		
 		player_health_ptrs[player.player_num - 1] = &player.player_health;
 		
@@ -825,7 +824,7 @@ void AttackPowerMechanicSystem::ReactToCollisions(float& dt)
 		auto& rigidBody = gCoordinator.GetComponent<RigidBody2D>(entity);
 		auto& player = gCoordinator.GetComponent<Player>(entity);
 		auto& animation = gCoordinator.GetComponent<Animation>(entity);
-		auto& transform = gCoordinator.GetComponent<Transform2D>(entity);
+		auto& gen_entity_state = gCoordinator.GetComponent<GeneralEnityState>(entity);
 		
 		//if player is in state of taking damage 
 		//activate hurt animation and keep them from moving
@@ -843,8 +842,9 @@ void AttackPowerMechanicSystem::ReactToCollisions(float& dt)
 			player.hurt_anim_time_count = 0;
 			player.hurt_anim_time_count += dt;
 			
+			//put in hurt state
 			player.state = PlayerState::HURTING;
-		
+			gen_entity_state.actor_state = EntityState::HURTING_KNOCKBACK;
 		}
 		else
 		{
@@ -862,6 +862,7 @@ void AttackPowerMechanicSystem::ReactToCollisions(float& dt)
 					animation.hurt = false;
 					player.hurt_anim_time_count = 0;
 					player.state = PlayerState::IDLE;
+					gen_entity_state.actor_state = EntityState::NONE;
 					player.hurt_invincible = false;
 				}
 			}
@@ -958,10 +959,20 @@ void AttackPowerMechanicSystem::HandleCollisionBetweenPlayerAttacksAndWorldTiles
 		
 		auto& player = gCoordinator.GetComponent<Player>(entity);
 		
-		float& obj_x = player.attack_box.collisionBox.x;
-		float& obj_y = player.attack_box.collisionBox.y;
-		float& obj_width = player.attack_box.collisionBox.width;
-		float& obj_height = player.attack_box.collisionBox.height;
+		float obj_x, obj_y, obj_width, obj_height;
+		
+		//use attack box for tile position if player is attacking
+		if(player.state == PlayerState::ATTACKING)
+		{
+			obj_x = player.attack_box.collisionBox.x;
+			obj_y = player.attack_box.collisionBox.y;
+			obj_width = player.attack_box.collisionBox.width;
+			obj_height = player.attack_box.collisionBox.height;
+		}
+		else
+		{
+			continue; //skip to next iteration
+		}
 		
 		size_t horiz_index = trunc(obj_x / 30 );
 		size_t vert_index = trunc((obj_y + 30) / 30 ) * num_tile_horizontal;
