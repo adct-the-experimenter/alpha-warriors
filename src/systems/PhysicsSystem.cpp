@@ -327,6 +327,7 @@ static void HandleWorldTileCollision_Idle_Ground(size_t& tile_index,float& obj_x
 					obj_vy = 0;
 					obj_y = world_ptr->tiles_vector[tile_index].y - obj_height;
 					grounded = true;
+					
 				}
 					
 				//if on the ground
@@ -358,7 +359,6 @@ static void HandleWorldTileCollision_Idle_Ground(size_t& tile_index,float& obj_x
 						}
 						else
 						{
-							
 							PushUp(obj_y,obj_vy,dt);
 							
 						}
@@ -493,12 +493,12 @@ static void HandleCollisionWithWorldTiles(float& obj_x, float& obj_y,
 		
 		if(world_ptr->tiles_vector[tile_index].type == TileType::PUSH_BACK)
 		{
-			if(entity_state == EntityState::NONE)
+			if(entity_state == EntityState::NONE || entity_state == EntityState::ATTACKING_NO_MOVE)
 			{
 				HandleWorldTileCollision_Idle_Ground(tile_index,obj_x,obj_y,obj_vx,obj_vy,dt,obj_width,obj_height,grounded,world_ptr);
 			}
 			else if(entity_state == EntityState::HURTING_KNOCKBACK)
-			{
+			{	
 				HandleWorldTileCollision_Knockback_Destroy(tile_index,world_ptr);
 			}
 		}
@@ -638,6 +638,7 @@ void PhysicsSystem::Update_VersusMode(float& dt)
 				if(jumpVel < 0 && !rigidBody.in_flying_state)
 				{					
 					physics_type_comp.grounded = false;
+					gen_entity_state.grounded = false;
 					physics_type_comp.jump_count++;
 					
 					rigidBody.velocity.y += jumpVel*2.0f;
@@ -759,6 +760,7 @@ void PhysicsSystem::Update_MetroidVaniaMode(float& dt)
 											physics_type_comp.grounded,
 											&world_one,
 											gen_entity_state.actor_state);
+						
 					}
 					
 				}

@@ -958,6 +958,7 @@ void AttackPowerMechanicSystem::HandleCollisionBetweenPlayerAttacksAndWorldTiles
 	{
 		
 		auto& player = gCoordinator.GetComponent<Player>(entity);
+		auto& phy_type_comp = gCoordinator.GetComponent<PhysicsTypeComponent>(entity);
 		
 		float obj_x, obj_y, obj_width, obj_height;
 		
@@ -1021,12 +1022,24 @@ void AttackPowerMechanicSystem::HandleCollisionBetweenPlayerAttacksAndWorldTiles
 			tiles_around_object[8] = num_tile_horizontal*220 - 1;
 		}
 
-
-
+		//check 
+		auto& rigidBody = gCoordinator.GetComponent <RigidBody2D>(entity);
+		size_t limit_tile_search = 0;
+		
+		//do not process bottom tiles if player is moving upward or grounded
+		//done to not destroy tiles below player
+		//std::cout << "velocity y:" << rigidBody.velocity.y << std::endl;
+		if(phy_type_comp.grounded)
+		{
+			//std::cout << "Tile not destroyed!\n";
+			limit_tile_search = 6;
+		}
+		
 		//for tiles around player
-		for(size_t i = 0; i < tiles_around_object.size(); i++)
+		for(size_t i = 0; i < tiles_around_object.size() - limit_tile_search; i++)
 		{
 			size_t& tile_index = tiles_around_object[i];
+			
 			
 			if(world_ptr->tiles_vector[tile_index].type == TileType::PUSH_BACK)
 			{
@@ -1035,6 +1048,7 @@ void AttackPowerMechanicSystem::HandleCollisionBetweenPlayerAttacksAndWorldTiles
 								   obj_x, obj_y, obj_width, obj_height) 
 					)
 				{
+					
 					//change tile to passable background tile
 					world_ptr->tiles_vector[tile_index].type = TileType::BACKGROUND;
 					world_ptr->tiles_vector[tile_index].tile_id = 0;

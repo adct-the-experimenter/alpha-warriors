@@ -707,7 +707,7 @@ void render()
 			
 			//render any entity that has render component
 			renderSystem->Update_MetroidVaniaMode();
-			
+						
 			break;
 		}
 	}

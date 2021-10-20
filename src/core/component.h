@@ -76,7 +76,7 @@ struct GeneralEnityState
 {
 	EntityActorType actor_type;
 	EntityState actor_state;
-	
+	bool grounded;
 };
 
 
