@@ -72,60 +72,6 @@ void InputReactorSystem::Update(ControllerInput& input)
 						rigidBody.velocity.x = 0.0f;
 					}
 					
-					//set power requested based on position of right joystick
-					//       0
-					//    7     1
-					//  6		  2
-					//    5     3
-					//       4
-					
-					//std::cout << "right joystick x:" << input.gamepads_vec[i].right_x_axis << std::endl;
-					//std::cout << "right joystick y:" << input.gamepads_vec[i].right_y_axis << std::endl;
-					
-					//if up
-					if(input.gamepads_vec[i].right_y_axis < -joystick_border_analog)
-					{
-						if(input.gamepads_vec[i].right_x_axis < -joystick_border_analog)
-						{
-							player.requested_power = 7;
-						}
-						else if(input.gamepads_vec[i].right_x_axis > joystick_border_analog)
-						{
-							player.requested_power = 1;
-						}
-						else
-						{
-							player.requested_power = 0;
-						}
-					}
-					//if down
-					else if(input.gamepads_vec[i].right_y_axis > joystick_border_analog*0.8)
-					{
-						if(input.gamepads_vec[i].right_x_axis < -joystick_border_analog)
-						{
-							player.requested_power = 5;
-						}
-						else if(input.gamepads_vec[i].right_x_axis > joystick_border_analog)
-						{
-							player.requested_power = 3;
-						}
-						else
-						{
-							player.requested_power = 4;
-						}
-					}
-					else
-					{
-						if(input.gamepads_vec[i].right_x_axis > joystick_border_analog)
-						{
-							player.requested_power = 2;
-						}
-						else if(input.gamepads_vec[i].right_x_axis < -joystick_border_analog)
-						{
-							player.requested_power = 6;
-						}
-					}
-					
 					
 					//if jump button pressed
 					if( input.gamepads_vec[i].button_down == SDL_CONTROLLER_BUTTON_B)
