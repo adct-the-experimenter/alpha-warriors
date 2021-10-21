@@ -8,7 +8,6 @@
 
 extern Coordinator gCoordinator;
 
-static std::array <std::string,5> special_power_choices = {"Sneak","Dash","Shield","Chunks","Big"};
 
 
 static Color LIGHT_BROWN = (Color){202,186,186,255}; 
@@ -59,7 +58,7 @@ CharacterSelector::CharacterSelector()
 	move_next_state = false;
 	
 	m_num_fighters = 8;
-	m_num_special_powers = special_power_choices.size();
+	//m_num_special_powers = special_power_choices.size();
 	
 	char_chosen_num_times_array.fill(0);
 }
@@ -87,7 +86,7 @@ void CharacterSelector::Init(std::vector <Entity> *entities_vec_ptr, std::uint8_
 	
 	int background_box_y_row1 = 180;
 	
-	int background_box_width = 150;
+	int background_box_width = 140;
 	int background_box_height = 75;
 	
 	int slot_x_offset = 100;
@@ -216,13 +215,8 @@ void CharacterSelector::handle_controller_input(ControllerInput& input)
 		//if joystick moved left, go left on color choice
 		if(input.gamepads_vec[i].left_x_dir_digital == -1)
 		{
-			//if on special power slot
-			if(fighter_boxes[i].current_slot == 1)
-			{
-				if(fighter_boxes[i].special_power_choice > 0){fighter_boxes[i].special_power_choice--;}
-			}
 			//if on character slot
-			else if(fighter_boxes[i].current_slot == 0)
+			if(fighter_boxes[i].current_slot == 0)
 			{
 				//move player selection to left if not on first character
 				if(char_profile_wall.player_selection[i] > 0)
@@ -235,13 +229,8 @@ void CharacterSelector::handle_controller_input(ControllerInput& input)
 		//if joystick moved right, go right on color choice
 		else if(input.gamepads_vec[i].left_x_dir_digital == 1)
 		{
-			//if on special power slot
-			if(fighter_boxes[i].current_slot == 1)
-			{
-				if(fighter_boxes[i].special_power_choice < m_num_special_powers - 1){ fighter_boxes[i].special_power_choice++; }
-			}
 			//if on character slot
-			else if(fighter_boxes[i].current_slot == 0)
+			if(fighter_boxes[i].current_slot == 0)
 			{
 				//move player selection to right if not on last character
 				if(char_profile_wall.player_selection[i] < 7)
@@ -260,14 +249,7 @@ void CharacterSelector::handle_controller_input(ControllerInput& input)
 			{
 				fighter_boxes[i].confirm_char_choice = true;
 				fighter_boxes[i].current_slot++;
-			}
-			
-			//if current slot is power choice slot
-			else if(fighter_boxes[i].current_slot == 1)
-			{
-				fighter_boxes[i].confirm_power_choice = true;
 				char_confirmations[i] = true;
-				fighter_boxes[i].current_slot++;
 			}
 		}
 		
@@ -276,20 +258,13 @@ void CharacterSelector::handle_controller_input(ControllerInput& input)
 		{
 			exit_mode_frame_count[i] = 0;
 			
-			//if current slot is power choice slot
+			//if current slot is final slot
 			if(fighter_boxes[i].current_slot == 1)
 			{
-				fighter_boxes[i].confirm_power_choice = false;
 				fighter_boxes[i].current_slot--;
+				char_confirmations[i] = false;
 			}
 			
-			//if current slot is final slot
-			else if(fighter_boxes[i].current_slot == 2)
-			{
-				fighter_boxes[i].confirm_power_choice = false;
-				char_confirmations[i] = false;
-				fighter_boxes[i].current_slot--;
-			}
 		}
 		//if b button held down
 		else if(input.gamepads_vec[i].button_down == SDL_CONTROLLER_BUTTON_B)
@@ -335,7 +310,7 @@ void CharacterSelector::render()
 	{
 		
 		//if selection is not confirmed
-		if(!fighter_boxes[i].confirm_power_choice)
+		if(!fighter_boxes[i].confirm_char_choice)
 		{
 			//background box
 			DrawRectangle(fighter_boxes[i].background_box.x, 
@@ -363,7 +338,7 @@ void CharacterSelector::render()
 			else{special_power_text_color = BLACK;}
 			
 			//draw text for special power
-			DrawText(special_power_choices[fighter_boxes[i].special_power_choice].c_str(), 
+			DrawText(character_profile_power_names[fighter_boxes[i].char_choice].c_str(), 
 					fighter_boxes[i].special_power_slot_rect.x, fighter_boxes[i].special_power_slot_rect.y
 					, 14, special_power_text_color);
 						
@@ -473,14 +448,14 @@ void CharacterSelector::DetermineConfirmationActions()
 			//add player info component
 			//set special power according to choice
 			
-			std::bitset <8> collected_powers;
-			collected_powers[fighter_boxes[i].special_power_choice] = 1;
+			//std::bitset <8> collected_powers;
+			//collected_powers[fighter_boxes[i].special_power_choice] = 1;
 			
 			Player player_comp = {};
 			player_comp.player_num = static_cast<uint8_t>(i + 1),
 			player_comp.player_health = 30;
 			player_comp.alive = true;
-			player_comp.current_power = fighter_boxes[i].special_power_choice;
+			//player_comp.current_power = fighter_boxes[i].special_power_choice;
 			player_comp.taking_damage = false;
 			player_comp.state = PlayerState::IDLE;
 			player_comp.hurt_invincible = false;

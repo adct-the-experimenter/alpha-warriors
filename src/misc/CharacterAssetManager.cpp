@@ -11,15 +11,23 @@
 
 #include "misc/char_sounds.h"
 
+#include <unordered_map>
+
 //define character variables from char_media.h
 std::array <std::string,8> character_names;
 std::array <Texture2D,8> character_profile_textures;
+std::array <std::string,8> character_profile_power_names;
+
 std::array <Texture2D,8> character_sheet_textures;
 std::array <CharFrames,8> character_frame_animations;
 std::array <CharSounds,8> character_sounds;
 
 
 extern Coordinator gCoordinator;
+
+//{"Sneak","Dash","Shield","Chunks","Big"}
+
+std::unordered_map <std::string,int> power_map( { {"Sneak",0},{"Dash",1},{"Shield",2},{"Chunks",3},{"Big",4} });
 
 bool CharacterAssetManager::LoadCharacterProfilesFromXML()
 {
@@ -64,6 +72,8 @@ bool CharacterAssetManager::LoadCharacterProfilesFromXML()
 		std::string filePathTextureFull = DATADIR_STR + "/fighter_assets/" + filepath_texture;
 		
 		character_profile_textures[iterator] = LoadTexture(filePathTextureFull.c_str());
+		
+		character_profile_power_names[iterator] = profile_node.attribute("sp_power").value();
 		
 		iterator++;
 		
@@ -159,10 +169,11 @@ static bool LoadFrameAnimationFromThisFile(std::string filepath_frames, CharFram
 	
 	char_frame.left_attack_mode_frames[5].frames[0] = frames[18];
 	char_frame.left_attack_mode_frames[5].frames[1] = frames[19];
-	std::cout << "left attack mode big: " << char_frame.left_attack_mode_frames[5].frames[0].x << ", "
-	<< char_frame.left_attack_mode_frames[5].frames[0].y << ", " << 
-	char_frame.left_attack_mode_frames[5].frames[0].width << ", " << 
-	char_frame.left_attack_mode_frames[5].frames[0].height << std::endl;
+	
+	//std::cout << "left attack mode big: " << char_frame.left_attack_mode_frames[5].frames[0].x << ", "
+	//<< char_frame.left_attack_mode_frames[5].frames[0].y << ", " << 
+	//char_frame.left_attack_mode_frames[5].frames[0].width << ", " << 
+	//char_frame.left_attack_mode_frames[5].frames[0].height << std::endl;
 	
 	//get right attack frames
 	// 0 is regular attack, 1-9 is special
@@ -268,7 +279,12 @@ static bool ReadCharacterStatsFromFile(std::string filepath_frames,CharStats& ch
     char_stat.speed_factor = atof( std::string( stats_node.attribute("speed_factor").value() ).c_str() );
     char_stat.jump_factor = atof( std::string( stats_node.attribute("jump_factor").value() ).c_str() );
     char_stat.damage_factor = atof( std::string( stats_node.attribute("damage_factor").value() ).c_str() );
-       
+    
+    pugi::xml_node power_node = root.child("SpecialPower");
+    
+    std::string power_str = power_node.attribute("power").value();
+    char_stat.special_power_choice = power_map[power_str];
+    
 	return true;
 }
 
@@ -447,6 +463,8 @@ bool CharacterAssetManager::LoadCharacterAssets(RequestedCharacters& req_chars, 
 		player.speed_factor = stat.speed_factor;
 		player.jump_factor = stat.jump_factor;
 		player.damage_factor = stat.damage_factor;
+		
+		player.current_power = stat.special_power_choice;
 		
 		//std::cout << "Player " << i << " , req char index " << req_chars.char_texture_index_req[i] << " initialized!" 
 		//<< " from file " << filepaths_char_stats[ req_chars.char_texture_index_req[i] ] << std::endl;

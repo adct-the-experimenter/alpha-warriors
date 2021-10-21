@@ -58,14 +58,12 @@ public:
 		std::uint8_t current_slot = 0;
 		
 		std::uint8_t char_choice = 0;
-		std::uint8_t special_power_choice = 0;
 		
 		Rectangle char_slot_rect;
 		
 		Rectangle special_power_slot_rect;
 		
 		bool confirm_char_choice = false;		
-		bool confirm_power_choice = false;
 	};
 	
 	void Reset();
@@ -92,7 +90,7 @@ private:
 	void handle_keyboard_input(KeyboardInput& input);
 	
 	std::uint8_t m_num_fighters;	
-	std::uint8_t m_num_special_powers;
+	//std::uint8_t m_num_special_powers;
 	
 	RequestedCharacters m_req_char;
 	

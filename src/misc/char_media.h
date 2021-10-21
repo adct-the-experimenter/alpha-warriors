@@ -54,6 +54,8 @@ struct CharStats
 	float speed_factor;
 	float jump_factor;
 	float damage_factor;
+	
+	int special_power_choice = -1;
 };
 
 //sounds for character
@@ -69,6 +71,7 @@ extern std::array <std::string,8> character_names;
 
 extern std::array <Texture2D,8> character_profile_textures;
 
+extern std::array <std::string,8> character_profile_power_names;
 
 extern std::array <Texture2D,8> character_sheet_textures;
 
