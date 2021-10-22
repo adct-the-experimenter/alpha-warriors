@@ -31,10 +31,11 @@ void AttackPowerMechanicSystem::Init(std::uint8_t num_players)
 	for (auto const& entity : mEntities)
 	{
 		auto& player = gCoordinator.GetComponent<Player>(entity);
+		auto& gen_entity_state = gCoordinator.GetComponent<GeneralEnityState>(entity);
 		auto& transform = gCoordinator.GetComponent<Transform2D>(entity);
 		auto& sound_comp = gCoordinator.GetComponent<SoundComponent>(entity);
 		
-		player_health_ptrs[player.player_num - 1] = &player.player_health;
+		player_health_ptrs[player.player_num - 1] = &gen_entity_state.health;
 		
 		player_attack_boxes_ptrs[player.player_num - 1] = &player.attack_box;
 		
@@ -190,6 +191,19 @@ void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 			
 			//reset power button pressed
 			player.powerButtonPressed = false;
+			
+		}
+		
+		//launch small energy beam if energy beam button pressed, and player is not taking damage
+		if(player.energyButtonPressed && !player.taking_damage)
+		{
+			auto& energy_attacker = gCoordinator.GetComponent<EnergyAttacker>(entity);
+			
+			energy_attacker.send_energy_beam = true;
+			
+			player.energyButtonPressed = false;
+			
+			energy_attacker.energy_beam_angle_deg = 0.0f;
 			
 		}
 		
@@ -363,6 +377,7 @@ void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 			}
 		}
 		
+		//cooldown for small energy beam
 		
 		
 		

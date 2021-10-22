@@ -104,6 +104,11 @@ void InputReactorSystem::Update(ControllerInput& input)
 					{
 						player.craftButtonPressed = true;
 					}
+					//if energy beam button pressed 
+					if(input.gamepads_vec[i].button_up_released == SDL_CONTROLLER_BUTTON_Y)
+					{
+						player.energyButtonPressed = true;
+					}
 					
 				}				
 				

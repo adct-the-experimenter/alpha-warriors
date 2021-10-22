@@ -76,7 +76,9 @@ struct GeneralEnityState
 {
 	EntityActorType actor_type;
 	EntityState actor_state;
-	bool grounded;
+	
+	//making health signed to avoid health becoming large if it ends up being less than zero.
+	std::int16_t health;
 };
 
 
@@ -142,12 +144,23 @@ struct AttackBox
 
 enum class PlayerState : std::uint8_t { IDLE=0, ATTACKING, HURTING};
 
+
+struct EnergyAttacker
+{
+	bool send_energy_beam;
+	
+	bool energy_beam_use[4];
+	int8_t energy_index_available;
+	int8_t pool_energy_indices_active[4];
+	uint8_t current_index_active;
+	
+	float energy_beam_angle_deg;
+};
+
+
 struct Player
 {
 	std::uint8_t player_num;
-	
-	//making health signed to avoid health becoming large if it ends up being less than zero.
-	std::int16_t player_health;
 	
 	bool alive;
 	
@@ -161,6 +174,9 @@ struct Player
 	
 	//indicate if player pressed craft button
 	bool craftButtonPressed;
+	
+	//indicate if player pressed the energy beam button
+	bool energyButtonPressed;
 	
 	//bitset to indicate which power a player has
 	std::bitset <8> collected_powers;
@@ -211,6 +227,7 @@ struct Player
 	
 	bool camera_lead; //indicates if player is camera leader
 	std::uint8_t camera_num_leader; //indicate which camera player is leading
+		
 };
 
 enum class InputReactorType : std::uint8_t { NONE=0, PLAYER, CAR};

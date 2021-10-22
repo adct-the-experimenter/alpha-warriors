@@ -9,6 +9,7 @@
 #include "systems/RenderSystem.h"
 #include "systems/AnimationSystem.h"
 #include "systems/AttackPowerMechanicSystem.h"
+#include "systems/EnergyAttackSystem.h"
 #include "systems/CraftingSystem.h"
 #include "systems/PlayerDeathSystem.h"
 
@@ -73,6 +74,8 @@ std::shared_ptr <InputReactorSystem> input_ReactSystem;
 std::shared_ptr <PhysicsSystem> physicsSystem;
 
 std::shared_ptr <AttackPowerMechanicSystem> attackPowerMechanicSystem;
+
+std::shared_ptr <EnergyAttackSystem> energyAttackSystem;
 
 std::shared_ptr <CraftingSystem> craftingSystem;
 
@@ -431,6 +434,8 @@ void logic()
 						//initialize render system
 						renderSystem->Init_MetroidVaniaMode(&main_camera_manager);
 						
+						energyAttackSystem->Init();
+						
 						break;
 					}
 				}
@@ -543,18 +548,22 @@ void logic()
 			
 			//handle activating powers based on input
 			attackPowerMechanicSystem->HandlePowerActivation(dt);
+			energyAttackSystem->HandleEnergyBeamActivation();
 			
 			//move attack boxes with players
 			attackPowerMechanicSystem->MoveAttackBoxesWithPlayer(dt);
+			energyAttackSystem->HandleEnergyBeamMovement(dt);
 			
 			//check collisions between players
 			attackPowerMechanicSystem->CollisionDetectionBetweenPlayers();
+			energyAttackSystem->HandleCollisionWithGeneralActors();
 			
 			//react to collisions
 			attackPowerMechanicSystem->ReactToCollisions(dt);
 			
 			//destroy tiles if player attack box collides with it
 			attackPowerMechanicSystem->HandleCollisionBetweenPlayerAttacksAndWorldTiles();
+			energyAttackSystem->HandleCollisionWithWorldTiles();
 			
 			//set up frame for render
 			animationSystem->Update(dt);
@@ -592,6 +601,8 @@ void logic()
 					gCoordinator.RemoveComponent<RigidBody2D>(entity_it);
 					gCoordinator.RemoveComponent<Gravity2D>(entity_it);
 					gCoordinator.RemoveComponent<PhysicsTypeComponent>(entity_it);
+					gCoordinator.RemoveComponent<GeneralEnityState>(entity_it);
+					gCoordinator.RemoveComponent<EnergyAttacker>(entity_it);
 				}
 				
 				//free loaded character media
@@ -704,6 +715,8 @@ void render()
 			cameraSystem->Update_MetroidVaniaMode();
 			
 			worldSystem->render();
+			
+			energyAttackSystem->RenderEnergyBeams_FreeplayMode(&main_camera_manager);
 			
 			//render any entity that has render component
 			renderSystem->Update_MetroidVaniaMode();
@@ -862,6 +875,7 @@ void InitMainECS()
 	gCoordinator.RegisterComponent<Player>();
 	gCoordinator.RegisterComponent<SoundComponent>();
 	gCoordinator.RegisterComponent<GeneralEnityState>();
+	gCoordinator.RegisterComponent<EnergyAttacker>();
 	
 	//make rendering system that only reacts to entities
 	//with render info component
@@ -936,6 +950,7 @@ void InitMainECS()
 	special_power_mechanic_sig.set(gCoordinator.GetComponentType<CollisionBox>());
 	special_power_mechanic_sig.set(gCoordinator.GetComponentType<SoundComponent>());
 	special_power_mechanic_sig.set(gCoordinator.GetComponentType<GeneralEnityState>());
+	special_power_mechanic_sig.set(gCoordinator.GetComponentType<EnergyAttacker>());
 	gCoordinator.SetSystemSignature<AttackPowerMechanicSystem>(special_power_mechanic_sig);
 	
 	//make crafting system
@@ -948,6 +963,19 @@ void InitMainECS()
 	crafting_system_sig.set( gCoordinator.GetComponentType<Transform2D>() );
 	
 	gCoordinator.SetSystemSignature<CraftingSystem>(crafting_system_sig);
+	
+	//make energy attacker system
+	energyAttackSystem = gCoordinator.RegisterSystem<EnergyAttackSystem>();
+	
+	Signature energy_attack_sig;
+	energy_attack_sig.set(gCoordinator.GetComponentType<Transform2D>());
+	energy_attack_sig.set(gCoordinator.GetComponentType<RigidBody2D>());
+	energy_attack_sig.set(gCoordinator.GetComponentType<CollisionBox>());
+	energy_attack_sig.set(gCoordinator.GetComponentType<SoundComponent>());
+	energy_attack_sig.set(gCoordinator.GetComponentType<GeneralEnityState>());
+	energy_attack_sig.set(gCoordinator.GetComponentType<EnergyAttacker>());
+	gCoordinator.SetSystemSignature<EnergyAttackSystem>(energy_attack_sig);
+	
 	
 	//make player death system
 	

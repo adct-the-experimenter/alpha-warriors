@@ -638,7 +638,6 @@ void PhysicsSystem::Update_VersusMode(float& dt)
 				if(jumpVel < 0 && !rigidBody.in_flying_state)
 				{					
 					physics_type_comp.grounded = false;
-					gen_entity_state.grounded = false;
 					physics_type_comp.jump_count++;
 					
 					rigidBody.velocity.y += jumpVel*2.0f;

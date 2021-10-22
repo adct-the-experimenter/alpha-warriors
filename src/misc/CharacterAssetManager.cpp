@@ -440,6 +440,8 @@ bool CharacterAssetManager::LoadCharacterAssets(RequestedCharacters& req_chars, 
 		auto& collision_box = gCoordinator.GetComponent<CollisionBox>(i);
 		auto& player = gCoordinator.GetComponent<Player>(i);
 		
+		auto& gen_entity_comp = gCoordinator.GetComponent<GeneralEnityState>(i);
+		
 		CharStats stat;
 		
 		if( !ReadCharacterStatsFromFile( filepaths_char_stats[ req_chars.char_texture_index_req[i] ], stat) )
@@ -458,7 +460,7 @@ bool CharacterAssetManager::LoadCharacterAssets(RequestedCharacters& req_chars, 
 		player.attack_box_offset = stat.attack_box_offset;
 		
 		player.health_factor = stat.health_factor;
-		player.player_health *= player.health_factor;
+		gen_entity_comp.health *= gen_entity_comp.health;
 		
 		player.speed_factor = stat.speed_factor;
 		player.jump_factor = stat.jump_factor;
