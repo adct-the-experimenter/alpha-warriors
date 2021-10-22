@@ -8,6 +8,7 @@
 
 #include <cmath>
 
+
 extern Coordinator gCoordinator;
 
 
@@ -203,7 +204,10 @@ void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 			
 			player.energyButtonPressed = false;
 			
-			energy_attacker.energy_beam_angle_deg = 0.0f;
+			float horiz = rigidBody.velocity.x;
+			float vert = -1.0f*rigidBody.velocity.y + 1.0f;
+						
+			energy_attacker.energy_beam_angle_deg = atan2(vert,horiz)*(180.0f / PI);
 			
 		}
 		
@@ -1037,13 +1041,10 @@ void AttackPowerMechanicSystem::HandleCollisionBetweenPlayerAttacksAndWorldTiles
 			tiles_around_object[8] = num_tile_horizontal*220 - 1;
 		}
 
-		//check 
-		auto& rigidBody = gCoordinator.GetComponent <RigidBody2D>(entity);
 		size_t limit_tile_search = 0;
 		
 		//do not process bottom tiles if player is moving upward or grounded
 		//done to not destroy tiles below player
-		//std::cout << "velocity y:" << rigidBody.velocity.y << std::endl;
 		if(phy_type_comp.grounded)
 		{
 			//std::cout << "Tile not destroyed!\n";

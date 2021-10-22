@@ -9,7 +9,6 @@
 
 #include <cmath>
 
-#define PI 3.14159265
 
 extern Coordinator gCoordinator;
 
@@ -54,7 +53,7 @@ void EnergyAttackSystem::HandleEnergyBeamActivation()
 			beam.start_point = {transform.position.x, transform.position.y};
 			
 			float rad_angle = energy_attacker.energy_beam_angle_deg * ( PI / 180.0f);
-			beam.end_point = {transform.position.x + cos(rad_angle)*640.0f, transform.position.y + sin(rad_angle)*360.0f};
+			beam.end_point = {transform.position.x + cos(rad_angle)*640.0f, transform.position.y - sin(rad_angle)*360.0f};
 			
 			
 			beam.energy_beam_attacker_index = energy_attacker.current_index_active;

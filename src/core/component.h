@@ -226,7 +226,7 @@ struct Player
 	std::uint8_t world_id;
 	
 	bool camera_lead; //indicates if player is camera leader
-	std::uint8_t camera_num_leader; //indicate which camera player is leading
+	std::uint8_t camera_num_leader; //indicate which camera player is leading 
 		
 };
 

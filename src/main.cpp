@@ -822,6 +822,7 @@ void GoToPreviousCharacterState()
 		gCoordinator.RemoveComponent<PhysicsTypeComponent>(entity_it);
 		gCoordinator.RemoveComponent<SoundComponent>(entity_it);
 		gCoordinator.RemoveComponent<GeneralEnityState>(entity_it);
+		gCoordinator.RemoveComponent<EnergyAttacker>(entity_it);
 	}
 	
 	//free loaded character media
