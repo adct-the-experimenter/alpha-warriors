@@ -38,12 +38,15 @@ Entity Component System code adapted from Austin Morlan's ECS code.
 
 A = Attack
 
+B = Jump
+
+Y = Energy Projectile
 
 Right Shoulder/Trigger = Special
 
 Left Shoulder/Trigger = Enable/Disable flying
 
-B = Jump
+
 
 
 ## Experimental Freeplay Mode
