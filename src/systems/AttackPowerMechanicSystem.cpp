@@ -26,7 +26,7 @@ void AttackPowerMechanicSystem::Init(std::uint8_t num_players)
 		player_hurt_invincible_ptrs[i] = nullptr;
 		player_sound_comp_types[i] = nullptr;
 		
-		player_knockback[i] = {0.0f,0.0f};
+		player_knockback[i] = nullptr;
 	}
 		
 	for (auto const& entity : mEntities)
@@ -46,9 +46,9 @@ void AttackPowerMechanicSystem::Init(std::uint8_t num_players)
 		
 		player_alive_ptrs[player.player_num - 1] = &player.alive;
 		
-		player_taking_damage_state_ptrs[player.player_num - 1] = &player.taking_damage;
+		player_taking_damage_state_ptrs[player.player_num - 1] = &gen_entity_state.taking_damage;
 		
-		player_hurt_invincible_ptrs[player.player_num - 1] = &player.hurt_invincible;
+		player_hurt_invincible_ptrs[player.player_num - 1] = &gen_entity_state.hurt_invincible;
 		
 		player_attack_damage_factor_ptrs[player.player_num - 1] = &player.damage_factor;
 		
@@ -56,6 +56,8 @@ void AttackPowerMechanicSystem::Init(std::uint8_t num_players)
 		player.collected_powers[player.current_power] = 1;
 		
 		player_sound_comp_types[player.player_num - 1] = &sound_comp;
+		
+		player_knockback[player.player_num - 1] = &gen_entity_state.victim_knockback_amt;
 	}
 	
 	m_num_players = num_players;
@@ -79,7 +81,7 @@ void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 		auto& gen_entity_state = gCoordinator.GetComponent<GeneralEnityState>(entity);
 		
 		//if player pressed attack button and isn't in hurting state and alive.
-		if(player.regularAttackButtonPressed && player.alive && !player.taking_damage && player.state != PlayerState::HURTING)
+		if(player.regularAttackButtonPressed && player.alive && !gen_entity_state.taking_damage && player.state != PlayerState::HURTING)
 		{
 			//if attack box is not active i.e. player is not attacking already
 			if(!player.attack_box.active)
@@ -97,7 +99,7 @@ void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 		}
 		
 		//change and/or activate current power based on input
-		else if(player.powerButtonPressed && player.requested_power < 8 && player.alive && !player.taking_damage && player.state != PlayerState::HURTING)
+		else if(player.powerButtonPressed && player.requested_power < 8 && player.alive && !gen_entity_state.taking_damage && player.state != PlayerState::HURTING)
 		{
 			
 			//std::cout << "Player " << int(player.player_num) << " requested this power: " << int(player.requested_power) << std::endl;
@@ -196,7 +198,7 @@ void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 		}
 		
 		//launch small energy beam if energy beam button pressed, and player is not taking damage
-		if(player.energyButtonPressed && !player.taking_damage)
+		if(player.energyButtonPressed && !gen_entity_state.taking_damage)
 		{
 			auto& energy_attacker = gCoordinator.GetComponent<EnergyAttacker>(entity);
 			
@@ -840,8 +842,8 @@ void AttackPowerMechanicSystem::HandlePossibleCollisionBetweenPlayers(int& playe
 			sign_y = -1;
 		}
 		
-		player_knockback[attack_event.player_num_victim - 1].x = sign_x*knockback;
-		player_knockback[attack_event.player_num_victim - 1].y = sign_y*knockback;
+		player_knockback[attack_event.player_num_victim - 1]->x = sign_x*knockback;
+		player_knockback[attack_event.player_num_victim - 1]->y = sign_y*knockback;
 		
 		//make sound
 		//player_sound_comp_types[attack_event.player_num_victim - 1]->sound_type = SoundType::GENERAL_SOUND;
@@ -868,10 +870,10 @@ void AttackPowerMechanicSystem::ReactToCollisions(float& dt)
 		
 		//if player is in state of taking damage 
 		//activate hurt animation and keep them from moving
-		if(player.taking_damage)
+		if(gen_entity_state.taking_damage)
 		{
-			player.taking_damage = false;
-			player.hurt_invincible = true;
+			gen_entity_state.taking_damage = false;
+			gen_entity_state.hurt_invincible = true;
 			
 			//reset animation
 			animation.attackMode = -1;
@@ -879,8 +881,8 @@ void AttackPowerMechanicSystem::ReactToCollisions(float& dt)
 			animation.hurt = true;
 			
 						
-			player.hurt_anim_time_count = 0;
-			player.hurt_anim_time_count += dt;
+			gen_entity_state.hurt_anim_time_count = 0;
+			gen_entity_state.hurt_anim_time_count += dt;
 			
 			//put in hurt state
 			player.state = PlayerState::HURTING;
@@ -891,19 +893,19 @@ void AttackPowerMechanicSystem::ReactToCollisions(float& dt)
 			if(player.state == PlayerState::HURTING)
 			{
 				//knock back
-				rigidBody.velocity.x = knockback_factor*player_knockback[player.player_num - 1].x;
-				rigidBody.velocity.y = knockback_factor*player_knockback[player.player_num - 1].y;
+				rigidBody.velocity.x = knockback_factor*player_knockback[player.player_num - 1]->x;
+				rigidBody.velocity.y = knockback_factor*player_knockback[player.player_num - 1]->y;
 				
-				player.hurt_anim_time_count += dt;
+				gen_entity_state.hurt_anim_time_count += dt;
 			
-				//if 2 seconds have passed, stop hurt animation
-				if(player.hurt_anim_time_count >= 0.5f)
+				//if 0.5 seconds seconds have passed, stop hurt animation
+				if(gen_entity_state.hurt_anim_time_count >= 0.5f)
 				{
 					animation.hurt = false;
-					player.hurt_anim_time_count = 0;
+					gen_entity_state.hurt_anim_time_count = 0;
 					player.state = PlayerState::IDLE;
 					gen_entity_state.actor_state = EntityState::NONE;
-					player.hurt_invincible = false;
+					gen_entity_state.hurt_invincible = false;
 				}
 			}
 			

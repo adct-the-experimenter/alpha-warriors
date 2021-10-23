@@ -12,6 +12,7 @@
 #include "systems/EnergyAttackSystem.h"
 #include "systems/CraftingSystem.h"
 #include "systems/PlayerDeathSystem.h"
+#include "systems/ReactionSystem.h"
 
 #include "systems/WorldSystem.h"
 
@@ -78,6 +79,8 @@ std::shared_ptr <AttackPowerMechanicSystem> attackPowerMechanicSystem;
 std::shared_ptr <EnergyAttackSystem> energyAttackSystem;
 
 std::shared_ptr <CraftingSystem> craftingSystem;
+
+std::shared_ptr <ReactionSystem> reactionSystem;
 
 std::shared_ptr <PlayerDeathSystem> playerDeathSystem;
 
@@ -559,7 +562,8 @@ void logic()
 			energyAttackSystem->HandleCollisionWithGeneralActors();
 			
 			//react to collisions
-			attackPowerMechanicSystem->ReactToCollisions(dt);
+			//attackPowerMechanicSystem->ReactToCollisions(dt);
+			reactionSystem->HandleReactionToCollisions(dt);
 			
 			//destroy tiles if player attack box collides with it
 			attackPowerMechanicSystem->HandleCollisionBetweenPlayerAttacksAndWorldTiles();
@@ -1008,6 +1012,20 @@ void InitMainECS()
 	sound_system_sig.set( gCoordinator.GetComponentType<SoundComponent>() );
 	
 	gCoordinator.SetSystemSignature<SoundSystem>(sound_system_sig);
+	
+	//make reaction system
+	
+	reactionSystem = gCoordinator.RegisterSystem <ReactionSystem>();
+	
+	Signature reaction_system_sig;
+	reaction_system_sig.set(gCoordinator.GetComponentType<Transform2D>());
+	reaction_system_sig.set(gCoordinator.GetComponentType<RigidBody2D>());
+	reaction_system_sig.set(gCoordinator.GetComponentType<Animation>());
+	reaction_system_sig.set(gCoordinator.GetComponentType<CollisionBox>());
+	reaction_system_sig.set(gCoordinator.GetComponentType<SoundComponent>());
+	reaction_system_sig.set(gCoordinator.GetComponentType<GeneralEnityState>());
+	
+	gCoordinator.SetSystemSignature<ReactionSystem>(reaction_system_sig);
 	
 }
 

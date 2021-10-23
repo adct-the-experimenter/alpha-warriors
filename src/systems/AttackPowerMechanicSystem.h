@@ -64,7 +64,7 @@ private:
 	void HandlePossibleCollisionBetweenPlayers(int& player_a_num, int& player_b_num);
 	
 	//array to hold values for knockback of player who was hit
-	std::array <Vector2,8> player_knockback;
+	std::array <Vector2*,8> player_knockback;
 	
 	std::uint8_t m_num_players;
 };

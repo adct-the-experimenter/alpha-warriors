@@ -113,6 +113,7 @@ src/misc/char_selector.cpp
 src/misc/CharacterAssetManager.cpp
 src/misc/stage_selector.cpp
 src/misc/level_maps.cpp
+src/systems/ReactionSystem.cpp
 src/systems/EnergyAttackSystem.cpp
 src/systems/AttackPowerMechanicSystem.cpp
 src/systems/CraftingSystem.cpp

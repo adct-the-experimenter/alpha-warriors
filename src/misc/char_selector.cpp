@@ -454,10 +454,8 @@ void CharacterSelector::DetermineConfirmationActions()
 			Player player_comp = {};
 			player_comp.player_num = static_cast<uint8_t>(i + 1),
 			player_comp.alive = true;
-			//player_comp.current_power = fighter_boxes[i].special_power_choice;
-			player_comp.taking_damage = false;
+			
 			player_comp.state = PlayerState::IDLE;
-			player_comp.hurt_invincible = false;
 			
 			switch(i)
 			{
@@ -569,6 +567,8 @@ void CharacterSelector::DetermineConfirmationActions()
 			gen_state_comp.actor_type = EntityActorType::PLAYER;
 			gen_state_comp.actor_state = EntityState::NONE;
 			gen_state_comp.health = 30;
+			gen_state_comp.taking_damage = false;
+			gen_state_comp.hurt_invincible = false;
 			
 			gCoordinator.AddComponent(*player_entities_vec.at(i),
 										gen_state_comp);

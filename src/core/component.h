@@ -50,6 +50,7 @@ struct RigidBody2D
 	Vector2 acceleration;
 	float jump_speed;
 	bool in_flying_state;
+	
 };
 
 
@@ -79,6 +80,19 @@ struct GeneralEnityState
 	
 	//making health signed to avoid health becoming large if it ends up being less than zero.
 	std::int16_t health;
+	
+	//indicate if damage is being taken
+	bool taking_damage;
+	
+	//frame count for hurt animation
+	float hurt_anim_time_count;
+	
+	//bool indicating that player is invincible because in pain right now.
+	//done to prevent losing health during after attack an in pain i.e. Invisibility frames
+	bool hurt_invincible;
+	
+	//amount which component is pushed/knocked back
+	Vector2 victim_knockback_amt;
 };
 
 
@@ -115,7 +129,6 @@ struct Animation
 	
 	//bool to indicate if player was hurt and needs to be in hurt animation
 	bool hurt;
-	
 	
 };
 
@@ -198,10 +211,7 @@ struct Player
 	
 	//attack collision box
 	AttackBox attack_box;
-	
-	//bool to indicate if player is suffering damage already.
-	bool taking_damage;
-	
+		
 	//character-specific variables for player
 	float attack_box_offset;
 	float health_factor;
@@ -209,15 +219,10 @@ struct Player
 	float jump_factor;
 	float damage_factor;
 	
-	//frame count for hurt animation
-	float hurt_anim_time_count;
 	
 	//state of player
 	PlayerState state;
 	
-	//bool indicating that player is invincible because in pain right now.
-	//done to prevent losing health during after attack an in pain i.e. Invisibility frames
-	bool hurt_invincible;
 	
 	//world id
 	std::uint8_t world_id;
