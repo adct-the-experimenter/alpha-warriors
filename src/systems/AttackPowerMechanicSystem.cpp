@@ -204,10 +204,31 @@ void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 			
 			player.energyButtonPressed = false;
 			
-			float horiz = rigidBody.velocity.x;
-			float vert = -1.0f*rigidBody.velocity.y + 1.0f;
+			//if player is moving
+			if(rigidBody.velocity.x != 0.0f || rigidBody.velocity.y != 0.0f)
+			{
+				float horiz = rigidBody.velocity.x;
+				float vert = -1.0f*rigidBody.velocity.y + 1.0f;
 						
-			energy_attacker.energy_beam_angle_deg = atan2(vert,horiz)*(180.0f / PI);
+				energy_attacker.energy_beam_angle_deg = atan2(vert,horiz)*(180.0f / PI);
+			}
+			//if player is not moving
+			else
+			{
+				float angle = 0.0f;
+				
+				//shoot in the direction that player was facing last frame
+				switch(animation.face_dir)
+				{
+					case FaceDirection::NONE:{ break;}
+					case FaceDirection::NORTH:{ angle = 90.0f; break;}
+					case FaceDirection::EAST:{ angle = 0.0f; break;}
+					case FaceDirection::WEST:{ angle = 180.0f; break;}
+					case FaceDirection::SOUTH:{ angle = -90.0f; break;}
+				}
+				
+				energy_attacker.energy_beam_angle_deg = angle;
+			}
 						
 		}
 		
@@ -925,7 +946,6 @@ void AttackPowerMechanicSystem::HandleCollisionBetweenPlayerAttacksAndWorldTiles
 	World* world_ptr = &world_one;
 	
 	//calculate tile that object is on
-	size_t num_tile_horizontal = 220;
 	
 	//for each player attack box
 	for (auto const& entity : mEntities)
@@ -950,18 +970,18 @@ void AttackPowerMechanicSystem::HandleCollisionBetweenPlayerAttacksAndWorldTiles
 		}
 		
 		size_t horiz_index = trunc(obj_x / 30 );
-		size_t vert_index = trunc((obj_y + 30) / 30 ) * num_tile_horizontal;
+		size_t vert_index = trunc((obj_y + 30) / 30 ) * world_num_tile_horizontal;
 
 
 		size_t object_tile_index = horiz_index + vert_index; 
 
 		std::array <size_t,9> tiles_around_object;
 
-		if(object_tile_index > num_tile_horizontal)
+		if(object_tile_index > world_num_tile_horizontal)
 		{
-			tiles_around_object[0] = object_tile_index - num_tile_horizontal - 1;
-			tiles_around_object[1] = object_tile_index - num_tile_horizontal;
-			tiles_around_object[2] = object_tile_index - num_tile_horizontal + 1;
+			tiles_around_object[0] = object_tile_index - world_num_tile_horizontal - 1;
+			tiles_around_object[1] = object_tile_index - world_num_tile_horizontal;
+			tiles_around_object[2] = object_tile_index - world_num_tile_horizontal + 1;
 		}
 		else
 		{
@@ -983,17 +1003,17 @@ void AttackPowerMechanicSystem::HandleCollisionBetweenPlayerAttacksAndWorldTiles
 
 		tiles_around_object[5] = object_tile_index + 1;
 
-		if(object_tile_index < num_tile_horizontal*219)
+		if(object_tile_index < world_num_tile_horizontal*219)
 		{
-			tiles_around_object[6] = object_tile_index + num_tile_horizontal - 1;
-			tiles_around_object[7] = object_tile_index + num_tile_horizontal;
-			tiles_around_object[8] = object_tile_index + num_tile_horizontal + 1;
+			tiles_around_object[6] = object_tile_index + world_num_tile_horizontal - 1;
+			tiles_around_object[7] = object_tile_index + world_num_tile_horizontal;
+			tiles_around_object[8] = object_tile_index + world_num_tile_horizontal + 1;
 		}
 		else
 		{
-			tiles_around_object[6] = num_tile_horizontal*220 - 3;
-			tiles_around_object[7] = num_tile_horizontal*220 - 2;
-			tiles_around_object[8] = num_tile_horizontal*220 - 1;
+			tiles_around_object[6] = world_num_tile_horizontal*220 - 3;
+			tiles_around_object[7] = world_num_tile_horizontal*220 - 2;
+			tiles_around_object[8] = world_num_tile_horizontal*220 - 1;
 		}
 
 		size_t limit_tile_search = 0;

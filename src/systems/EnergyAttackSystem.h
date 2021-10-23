@@ -12,7 +12,6 @@
 
 struct SmallEnergyBeam
 {
-	bool active;
 	
 	Rectangle collision_rect;
 	Vector2 start_point;
@@ -23,6 +22,8 @@ struct SmallEnergyBeam
 	
 	float projectile_speed_x;
 	float projectile_speed_y;
+	
+	float time_active;
 	
 };
 
