@@ -962,6 +962,7 @@ void InitMainECS()
 	crafting_system_sig.set( gCoordinator.GetComponentType<Player>() );
 	crafting_system_sig.set( gCoordinator.GetComponentType<Animation>() );
 	crafting_system_sig.set( gCoordinator.GetComponentType<Transform2D>() );
+	crafting_system_sig.set( gCoordinator.GetComponentType<RigidBody2D>() );
 	
 	gCoordinator.SetSystemSignature<CraftingSystem>(crafting_system_sig);
 	

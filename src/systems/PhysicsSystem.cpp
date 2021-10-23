@@ -327,7 +327,7 @@ static void HandleWorldTileCollision_Idle_Ground(size_t& tile_index,float& obj_x
 					obj_vy = 0;
 					obj_y = world_ptr->tiles_vector[tile_index].y - obj_height;
 					grounded = true;
-					
+					return;
 				}
 					
 				//if on the ground
@@ -359,7 +359,19 @@ static void HandleWorldTileCollision_Idle_Ground(size_t& tile_index,float& obj_x
 						}
 						else
 						{
-							PushUp(obj_y,obj_vy,dt);
+							//if player head is below platform
+							if(obj_y + 5 >= world_ptr->tiles_vector[tile_index].y + 30)
+							{
+								obj_vy = 0;
+								obj_y = world_ptr->tiles_vector[tile_index].y + 30;
+							}
+							//if player feet are aboce platform
+							else
+							{
+								obj_vy = 0;
+								obj_y = world_ptr->tiles_vector[tile_index].y - obj_height;
+							}
+							
 							
 						}
 												
@@ -410,7 +422,9 @@ static void HandleWorldTileCollision_Idle_Ground(size_t& tile_index,float& obj_x
 					//else if player is below platform
 					else
 					{
-						//std::cout << "\nplayer below platform. Push down.\n";
+						obj_vy = 0;
+						obj_y = world_ptr->tiles_vector[tile_index].y + 30;
+						std::cout << "\nplayer below platform. Push down.\n";
 						//do nothing, have player pass through if player avatar feet are below platform
 						//have player just fall and pushed back against side of platform if in air.
 					}

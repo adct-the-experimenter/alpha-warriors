@@ -20,10 +20,10 @@ void CraftingSystem::HandleCrafting()
 	//world
 	World* world_ptr = &world_one;
 	
-	CraftingSystem::HandleTilePlacement(world_ptr);
+	CraftingSystem::HandleTilePlacementInWorld(world_ptr);
 }
 
-void CraftingSystem::HandleTilePlacement(World* world_ptr)
+void CraftingSystem::HandleTilePlacementInWorld(World* world_ptr)
 {
 	for (auto const& entity : mEntities)
 	{
@@ -37,13 +37,13 @@ void CraftingSystem::HandleTilePlacement(World* world_ptr)
 			//get direction player is facing
 			auto& animation = gCoordinator.GetComponent<Animation>(entity);
 			auto& transform = gCoordinator.GetComponent<Transform2D>(entity);
+			auto& rigidBody = gCoordinator.GetComponent<RigidBody2D>(entity);
 			
 			//get tile near player in direction facing
 			
-			size_t num_tile_horizontal = 220;
 			
 			size_t horiz_index = trunc(transform.position.x / 30 );
-			size_t vert_index = trunc((transform.position.y + 30) / 30 ) * num_tile_horizontal;
+			size_t vert_index = trunc((transform.position.y + 30) / 30 ) *  world_num_tile_horizontal;
 
 			size_t player_tile = horiz_index + vert_index;
 			
@@ -64,17 +64,48 @@ void CraftingSystem::HandleTilePlacement(World* world_ptr)
 					tile_to_change = player_tile + 1; 
 					break;
 				}
+				case FaceDirection::NORTH:
+				{
+					if(player_tile > world_num_tile_horizontal)
+					{
+						tile_to_change = player_tile - world_num_tile_horizontal;
+					}
+					
+					break;
+				}
+				case FaceDirection::SOUTH:
+				{
+					if(player_tile < world_num_tile_horizontal*(world_num_tile_horizontal - 1))
+					{
+						tile_to_change = player_tile + world_num_tile_horizontal;
+					}
+					else
+					{
+						tile_to_change = world_num_tile_horizontal*world_num_tile_horizontal - 2;
+					}
+					
+					break;
+				}
 				default:
 				{
-					tile_to_change = player_tile;
+					//do not change tile
+					continue;
 					break;
 				}
 			}
 						
 			//change tile type, frame, tile id
-			world_ptr->tiles_vector[tile_to_change].type = TileType::PUSH_BACK;
-			world_ptr->tiles_vector[tile_to_change].tile_id = 2;
-			world_ptr->tiles_vector[tile_to_change].frame_clip_ptr = &world_ptr->frame_clip_map[2];
+			if(tile_to_change < world_num_tile_total)
+			{
+				//stop player from moving
+				rigidBody.velocity.x = 0.0f;
+				rigidBody.velocity.y = 0.0f;
+				
+				world_ptr->tiles_vector[tile_to_change].type = TileType::PUSH_BACK;
+				world_ptr->tiles_vector[tile_to_change].tile_id = 2;
+				world_ptr->tiles_vector[tile_to_change].frame_clip_ptr = &world_ptr->frame_clip_map[2];
+			}
+			
 			
 			player.craftButtonPressed = false;
 		}

@@ -13,7 +13,7 @@ public:
 	void HandleCrafting();
 	
 private:
-	void HandleTilePlacement(World* world_ptr);
+	void HandleTilePlacementInWorld(World* world_ptr);
 };
 
 #endif

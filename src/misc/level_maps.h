@@ -117,5 +117,6 @@ bool CollisionWithTileDetected(float tile_x,float tile_y,
 						   float& obj_x, float& obj_y, float& obj_width, float& obj_height);
 
 const size_t world_num_tile_horizontal = 220;
+const size_t world_num_tile_total = 48400;
 
 #endif
