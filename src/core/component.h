@@ -93,6 +93,7 @@ struct GeneralEnityState
 	
 	//amount which component is pushed/knocked back
 	Vector2 victim_knockback_amt;
+	
 };
 
 

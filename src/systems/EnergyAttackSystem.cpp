@@ -265,6 +265,7 @@ void EnergyAttackSystem::HandleCollisionWithGeneralActors()
 		auto& transform = gCoordinator.GetComponent<Transform2D>(entity);
 		auto& collisionBox = gCoordinator.GetComponent<CollisionBox>(entity);
 		auto& gen_entity_state = gCoordinator.GetComponent<GeneralEnityState>(entity);
+		auto& rigidBody = gCoordinator.GetComponent<RigidBody2D>(entity);
 		
 		size_t iterator = 0;
 		//for every beam
@@ -277,7 +278,23 @@ void EnergyAttackSystem::HandleCollisionWithGeneralActors()
 												collisionBox.width, collisionBox.height))	
 			{
 				//decrease health
-				gen_entity_state.health -= 10;
+				gen_entity_state.health -= 4;
+				
+				//put in general actor in state of taking damage
+				gen_entity_state.taking_damage = true;
+				gen_entity_state.actor_state = EntityState::HURTING_KNOCKBACK;
+				
+				//move back player in opposite direction of beam
+				float sign_x = 1.0f; 
+				if(beam.projectile_speed_x < -10.0f ){sign_x = -1.0f;}
+				
+				float sign_y = 1.0f;
+				if(beam.projectile_speed_y < -10.0f){sign_y = -1.0f;}
+				
+				float tiles_knock = 2.0f;
+				
+				gen_entity_state.victim_knockback_amt.x = sign_x*tiles_knock;
+				gen_entity_state.victim_knockback_amt.y = sign_y*tiles_knock;
 				
 				//add beam back to energy attacker queue
 				queue_energy_pool_available_array[beam.energy_beam_attacker_index] += 1;
