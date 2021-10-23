@@ -576,18 +576,7 @@ void CharacterSelector::DetermineConfirmationActions()
 			//add genergy attacker component
 			EnergyAttacker energy_attacker_comp = {};
 			
-			energy_attacker_comp.send_energy_beam = false;
-			energy_attacker_comp.energy_beam_use[0] = false;
-			energy_attacker_comp.energy_beam_use[1] = false;
-			energy_attacker_comp.energy_beam_use[2] = false;
-			energy_attacker_comp.energy_beam_use[3] = false;
-			
-			energy_attacker_comp.energy_index_available = -1;
-			energy_attacker_comp.pool_energy_indices_active[0] = -1;
-			energy_attacker_comp.pool_energy_indices_active[1] = -1;
-			energy_attacker_comp.pool_energy_indices_active[2] = -1;
-			energy_attacker_comp.pool_energy_indices_active[3] = -1;
-			energy_attacker_comp.current_index_active = 0;
+			energy_attacker_comp.queue_id = static_cast<uint8_t>(i);
 			
 			gCoordinator.AddComponent(*player_entities_vec.at(i),
 										energy_attacker_comp);

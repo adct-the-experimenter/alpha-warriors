@@ -149,10 +149,7 @@ struct EnergyAttacker
 {
 	bool send_energy_beam;
 	
-	bool energy_beam_use[4];
-	int8_t energy_index_available;
-	int8_t pool_energy_indices_active[4];
-	uint8_t current_index_active;
+	uint8_t queue_id;
 	
 	float energy_beam_angle_deg;
 };

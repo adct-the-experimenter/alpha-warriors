@@ -113,6 +113,7 @@ extern World world_two;
 extern World world_three;
 extern World world_four;
 
-
+bool CollisionWithTileDetected(float tile_x,float tile_y,
+						   float& obj_x, float& obj_y, float& obj_width, float& obj_height);
 
 #endif

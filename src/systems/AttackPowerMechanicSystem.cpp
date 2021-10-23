@@ -219,7 +219,7 @@ void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 			player.regular_attack_cooldown_timer_val += dt;
 			
 			//if player is not in the air, stop player from moving horizontally
-			if(!rigidBody.velocity.y)rigidBody.velocity.x = 0.0f;
+			if(!rigidBody.velocity.y){rigidBody.velocity.x = 0.0f;}
 			
 			//if more than 0.5 seconds has passed
 			if(player.regular_attack_cooldown_timer_val >= 0.5f)
@@ -918,6 +918,7 @@ void AttackPowerMechanicSystem::DebugRender()
 	}
 }
 
+/*
 static bool CollisionWithTileDetected(float tile_x,float tile_y,
 						   float& obj_x, float& obj_y, float& obj_width, float& obj_height)
 {
@@ -963,6 +964,7 @@ static bool CollisionWithTileDetected(float tile_x,float tile_y,
 	
 	return true;
 }
+*/
 
 void AttackPowerMechanicSystem::HandleCollisionBetweenPlayerAttacksAndWorldTiles()
 {

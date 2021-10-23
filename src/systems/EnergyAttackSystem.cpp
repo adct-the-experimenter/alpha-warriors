@@ -9,16 +9,20 @@
 
 #include <cmath>
 
+#include "misc/level_maps.h"
 
 extern Coordinator gCoordinator;
 
 void EnergyAttackSystem::Init()
 {
-	//initialize 40 beams available on screen
-	for(size_t i = 0; i < MAX_ENERGY_BEAMS_ON_SCREEN; i++)
+	//initialize queue for all attackers
+	for(size_t i = 0; i < MAX_NUM_ATTACKERS; i++)
 	{
-		queue_available_pool_energy_beam_indices.emplace(i);
+		queue_energy_pool_available_array[i] = MAX_ENERGY_BEAMS_PER_ATTACKER;
+		
 	}
+	
+	energy_pool_vector.reserve(MAX_ENERGY_BEAMS_PER_ATTACKER*MAX_NUM_ATTACKERS);
 	
 }
 
@@ -29,36 +33,28 @@ void EnergyAttackSystem::HandleEnergyBeamActivation()
 		auto& energy_attacker = gCoordinator.GetComponent<EnergyAttacker>(entity);
 		auto& transform = gCoordinator.GetComponent<Transform2D>(entity);
 		
-		//if queue of energy beams available from pool is not empty
-		if(!queue_available_pool_energy_beam_indices.empty() && energy_attacker.send_energy_beam)
+		//if energy beams available from queue and energy beam requested
+		if(!queue_energy_pool_available_array[energy_attacker.queue_id] != -1 
+			&& energy_attacker.send_energy_beam)
 		{
-			//get avaiable energy beam from pool
-			uint8_t front_index = queue_available_pool_energy_beam_indices.front();
+			//take off 1 energy beam from available pool
+			queue_energy_pool_available_array[energy_attacker.queue_id] -= 1;
 			
-			if(energy_attacker.energy_index_available < 4)
-			{
-				energy_attacker.energy_index_available++;
-				energy_attacker.energy_beam_use[energy_attacker.energy_index_available] = true;
-			}
-			else
-			{
-				energy_attacker.energy_index_available = -1;
-				continue;
-			}
+			energy_attacker.send_energy_beam = false;
 			
+			//add to vector of energy beams on screen
+			energy_pool_vector.emplace_back(SmallEnergyBeam());
 			
 			//set small energy beam collision, start, end, and reference to energy beam pool index
-			SmallEnergyBeam& beam = small_energy_beams[front_index];
+			SmallEnergyBeam& beam = energy_pool_vector.back();
 			beam.collision_rect = {transform.position.x, transform.position.y, 30.0f,30.0f};			
-			beam.start_point = {transform.position.x, transform.position.y};
+			
 			
 			float rad_angle = energy_attacker.energy_beam_angle_deg * ( PI / 180.0f);
+			beam.start_point = {transform.position.x + cos(rad_angle)*40.0f, transform.position.y - sin(rad_angle)*36.0f};
 			beam.end_point = {transform.position.x + cos(rad_angle)*640.0f, transform.position.y - sin(rad_angle)*360.0f};
 			
-			
-			beam.energy_beam_attacker_index = energy_attacker.current_index_active;
-			
-			float slope_step = 2.0f;
+			float slope_step = 0.5f;
 			
 			beam.projectile_speed_x = (beam.end_point.x - beam.start_point.x) / slope_step;
 			
@@ -66,17 +62,7 @@ void EnergyAttackSystem::HandleEnergyBeamActivation()
 			
 			beam.active = true;
 			
-			if(energy_attacker.current_index_active < 4)
-			{
-				energy_attacker.pool_energy_indices_active[energy_attacker.current_index_active] = front_index;
-				energy_attacker.current_index_active++;
-			}
-			
-			
-			//take off 1 energy beam from available pool
-			queue_available_pool_energy_beam_indices.pop();
-			
-			energy_attacker.send_energy_beam = false;
+			beam.energy_beam_attacker_index = energy_attacker.queue_id;
 		}
 		
 	}
@@ -84,11 +70,11 @@ void EnergyAttackSystem::HandleEnergyBeamActivation()
 
 void EnergyAttackSystem::HandleEnergyBeamMovement(float& dt)
 {
-	for( auto& beam : small_energy_beams)
+	//move each beam in vector
+	for( auto& beam : energy_pool_vector)
 	{
 		if(beam.active)
 		{
-			
 			//move beam
 			beam.collision_rect.x += beam.projectile_speed_x*dt;
 			beam.collision_rect.y += beam.projectile_speed_y*dt;
@@ -99,16 +85,140 @@ void EnergyAttackSystem::HandleEnergyBeamMovement(float& dt)
 void EnergyAttackSystem::HandleCollisionWithWorldTiles()
 {
 	
+	
+	//world
+	World* world_ptr = &world_one;
+	
+	//calculate tile that object is on
+	size_t num_tile_horizontal = 220;
+	
+	for( auto& beam : energy_pool_vector)
+	{
+		size_t iterator = 0;
+		
+		if(beam.active)
+		{
+			float& obj_x = beam.collision_rect.x;
+			float& obj_y = beam.collision_rect.y; 
+			float& obj_width = beam.collision_rect.width; 
+			float& obj_height = beam.collision_rect.height;
+			
+		
+			size_t horiz_index = trunc(obj_x / 30 );
+			size_t vert_index = trunc((obj_y + 30) / 30 ) * num_tile_horizontal;
+
+			size_t object_tile_index = horiz_index + vert_index; 
+
+			std::array <size_t,9> tiles_around_object;
+
+			if(object_tile_index > num_tile_horizontal)
+			{
+				tiles_around_object[0] = object_tile_index - num_tile_horizontal - 1;
+				tiles_around_object[1] = object_tile_index - num_tile_horizontal;
+				tiles_around_object[2] = object_tile_index - num_tile_horizontal + 1;
+			}
+			else
+			{
+				tiles_around_object[0] = 0;
+				tiles_around_object[1] = 0;
+				tiles_around_object[2] = 0;
+			}
+
+			if(object_tile_index > 0)
+			{
+				tiles_around_object[3] = object_tile_index - 1;
+			}
+			else
+			{
+				tiles_around_object[3] = 0;
+			}
+
+			tiles_around_object[4] = object_tile_index;
+
+			tiles_around_object[5] = object_tile_index + 1;
+
+			if(object_tile_index < num_tile_horizontal*219)
+			{
+				tiles_around_object[6] = object_tile_index + num_tile_horizontal - 1;
+				tiles_around_object[7] = object_tile_index + num_tile_horizontal;
+				tiles_around_object[8] = object_tile_index + num_tile_horizontal + 1;
+			}
+			else
+			{
+				tiles_around_object[6] = num_tile_horizontal*220 - 3;
+				tiles_around_object[7] = num_tile_horizontal*220 - 2;
+				tiles_around_object[8] = num_tile_horizontal*220 - 1;
+			}
+			
+			//for tiles around beam
+			for(size_t i = 0; i < tiles_around_object.size(); i++)
+			{
+				size_t& tile_index = tiles_around_object[i];
+				
+				//if out of bounds
+				if(tile_index > num_tile_horizontal*num_tile_horizontal - 1)
+				{
+					//add beam back to energy attacker queue
+					queue_energy_pool_available_array[beam.energy_beam_attacker_index] += 1;
+					
+					//remove beam from vector
+					std::swap(energy_pool_vector[iterator],energy_pool_vector.back());
+					energy_pool_vector.pop_back();
+					 
+					break;
+				}
+				
+				if(world_ptr->tiles_vector[tile_index].type == TileType::PUSH_BACK)
+				{
+					//if player(obj) collides with a platforms
+					if(CollisionWithTileDetected(world_ptr->tiles_vector[tile_index].x,world_ptr->tiles_vector[tile_index].y,
+									   obj_x, obj_y, obj_width, obj_height) 
+						)
+					{
+						
+						//change tile to passable background tile
+						world_ptr->tiles_vector[tile_index].type = TileType::BACKGROUND;
+						world_ptr->tiles_vector[tile_index].tile_id = 0;
+						world_ptr->tiles_vector[tile_index].frame_clip_ptr = &world_ptr->frame_clip_map[0];
+						
+						//add beam back to energy attacker queue
+						queue_energy_pool_available_array[beam.energy_beam_attacker_index] += 1;
+						
+						//remove beam from vector
+						std::swap(energy_pool_vector[iterator],energy_pool_vector.back());
+						energy_pool_vector.pop_back();
+					}
+				}
+
+			}		
+				
+		}
+		
+		iterator++;
+	}
 }
 
 void EnergyAttackSystem::HandleCollisionWithGeneralActors()
 {
-	
+	/*
+	for( auto& beam : energy_pool_vector)
+	{
+		if(beam.active)
+		{
+			//if beam collision rectangle collides with a general actor i.e. player,enemy, object
+				
+				//remove beam from vector
+				//add beam back to energy attacker queue
+				
+		}
+	}
+	*/
 }
+
 
 void EnergyAttackSystem::RenderEnergyBeams_FreeplayMode(CameraManager* camera_manager_ptr)
 {
-	for( auto& beam : small_energy_beams)
+	for( auto& beam : energy_pool_vector)
 	{
 		if(beam.active)
 		{
@@ -118,9 +228,15 @@ void EnergyAttackSystem::RenderEnergyBeams_FreeplayMode(CameraManager* camera_ma
 				{
 					if(camera_manager_ptr->screens[i].camera_ptr)
 					{
+						Rectangle* camera_rect_ptr = camera_manager_ptr->screens[i].camera_ptr->GetCameraRectPointer();
 						
-						DrawRectangle(beam.collision_rect.x - camera_manager_ptr->screens[i].camera_ptr->GetCameraRectPointer()->x, 
-									beam.collision_rect.y - camera_manager_ptr->screens[i].camera_ptr->GetCameraRectPointer()->y, 
+						if(beam.collision_rect.x < camera_rect_ptr->x || beam.collision_rect.y < camera_rect_ptr->y)
+						{
+							continue;
+						}
+						
+						DrawRectangle(beam.collision_rect.x - camera_rect_ptr->x, 
+									beam.collision_rect.y - camera_rect_ptr->y, 
 										beam.collision_rect.width, beam.collision_rect.height, 
 										RED);
 						

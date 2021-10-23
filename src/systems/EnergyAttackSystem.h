@@ -8,6 +8,7 @@
 #include "misc/camera.h"
 
 #include <queue>
+#include <array>
 
 struct SmallEnergyBeam
 {
@@ -25,7 +26,8 @@ struct SmallEnergyBeam
 	
 };
 
-#define MAX_ENERGY_BEAMS_ON_SCREEN 40
+#define MAX_ENERGY_BEAMS_PER_ATTACKER 5
+#define MAX_NUM_ATTACKERS 12
 
 class EnergyAttackSystem : public System
 {
@@ -52,11 +54,11 @@ void RenderEnergyBeams_FreeplayMode(CameraManager* camera_manager_ptr);
 
 private:
 
-//array of energy beams
-SmallEnergyBeam small_energy_beams[MAX_ENERGY_BEAMS_ON_SCREEN];
+//queue of energy beams available in pool
+std::array <int8_t,MAX_NUM_ATTACKERS> queue_energy_pool_available_array;
 
-//queue of energy beams available in pool 
-std::queue <uint8_t> queue_available_pool_energy_beam_indices;
+//vector to hold energy projectiles on screen
+std::vector <SmallEnergyBeam> energy_pool_vector;
 
 };
  
