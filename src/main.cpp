@@ -984,6 +984,7 @@ void InitMainECS()
 	
 	Signature player_death_sig;
 	player_death_sig.set( gCoordinator.GetComponentType<Player>() );
+	player_death_sig.set( gCoordinator.GetComponentType<GeneralEnityState>() );
 	player_death_sig.set( gCoordinator.GetComponentType<RenderModelComponent>() );
 	gCoordinator.SetSystemSignature<PlayerDeathSystem>(player_death_sig);
 	

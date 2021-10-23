@@ -32,11 +32,13 @@ void EnergyAttackSystem::HandleEnergyBeamActivation()
 	{
 		auto& energy_attacker = gCoordinator.GetComponent<EnergyAttacker>(entity);
 		auto& transform = gCoordinator.GetComponent<Transform2D>(entity);
+		auto& collisionBox = gCoordinator.GetComponent<CollisionBox>(entity);
 		
 		//if energy beams available from queue and energy beam requested
-		if(!queue_energy_pool_available_array[energy_attacker.queue_id] != -1 
+		if(queue_energy_pool_available_array[energy_attacker.queue_id] != -1 
 			&& energy_attacker.send_energy_beam)
 		{
+		
 			//take off 1 energy beam from available pool
 			queue_energy_pool_available_array[energy_attacker.queue_id] -= 1;
 			
@@ -47,12 +49,13 @@ void EnergyAttackSystem::HandleEnergyBeamActivation()
 			
 			//set small energy beam collision, start, end, and reference to energy beam pool index
 			SmallEnergyBeam& beam = energy_pool_vector.back();
-			beam.collision_rect = {transform.position.x, transform.position.y, 30.0f,30.0f};			
-			
 			
 			float rad_angle = energy_attacker.energy_beam_angle_deg * ( PI / 180.0f);
-			beam.start_point = {transform.position.x + cos(rad_angle)*40.0f, transform.position.y - sin(rad_angle)*36.0f};
+			beam.start_point = {transform.position.x + cos(rad_angle)*static_cast<float>(collisionBox.width), 
+								transform.position.y - sin(rad_angle)*static_cast<float>(collisionBox.height)};
 			beam.end_point = {transform.position.x + cos(rad_angle)*640.0f, transform.position.y - sin(rad_angle)*360.0f};
+			
+			beam.collision_rect = {beam.start_point.x, beam.start_point.y, 30.0f,30.0f};
 			
 			float slope_step = 0.5f;
 			
@@ -84,7 +87,6 @@ void EnergyAttackSystem::HandleEnergyBeamMovement(float& dt)
 
 void EnergyAttackSystem::HandleCollisionWithWorldTiles()
 {
-	
 	
 	//world
 	World* world_ptr = &world_one;
@@ -198,21 +200,89 @@ void EnergyAttackSystem::HandleCollisionWithWorldTiles()
 	}
 }
 
+static bool CollisionWithRectangleDetected(Rectangle& rect,
+						   float& obj_x, float& obj_y, std::uint32_t& obj_width, std::uint32_t& obj_height)
+{
+	//assuming object has width and height of 30 and it is centered
+	
+	float objLeftX = obj_x;
+	float objRightX = obj_x + obj_width;
+	float objTopY = obj_y;
+	float objBottomY = obj_y + obj_height;
+	
+	std::uint32_t rectLeftX = rect.x;
+	std::uint32_t rectRightX = rect.x + rect.width;
+	std::uint32_t rectTopY = rect.y;
+	std::uint32_t rectBottomY = rect.y + rect.height;
+	
+	//for collision to be true, all conditions must be true. AABB square collsion detection, all
+	//The left edge x-position of [A] must be less than the right edge x-position of [B].
+    //The right edge x-position of [A] must be greater than the left edge x-position of [B].
+    //The top edge y-position of [A] must be less than the bottom edge y-position of [B].
+    //The bottom edge y-position of [A] must be greater than the top edge y-position of [B].
+    
+    if(objBottomY <= rectTopY)
+	{
+		return false;
+	}
+	
+	if(objTopY >= rectBottomY)
+	{
+		return false;
+	}
+    
+    if(objRightX <= rectLeftX)
+	{
+		return false;
+	}
+	
+	if(objLeftX >= rectRightX)
+	{
+		return false;
+	}
+	
+	return true;
+}
+
 void EnergyAttackSystem::HandleCollisionWithGeneralActors()
 {
-	/*
-	for( auto& beam : energy_pool_vector)
+	for(auto entity : mEntities)
 	{
-		if(beam.active)
+		auto& transform = gCoordinator.GetComponent<Transform2D>(entity);
+		auto& collisionBox = gCoordinator.GetComponent<CollisionBox>(entity);
+		auto& gen_entity_state = gCoordinator.GetComponent<GeneralEnityState>(entity);
+		
+		size_t iterator = 0;
+		//for every beam
+		//check if there is a collision
+		for( auto& beam : energy_pool_vector)
 		{
-			//if beam collision rectangle collides with a general actor i.e. player,enemy, object
-				
-				//remove beam from vector
-				//add beam back to energy attacker queue
-				
+			if(beam.active)
+			{
+				//if beam collision rectangle collides with a general actor i.e. player,enemy,object
+				if( CollisionWithRectangleDetected(beam.collision_rect,
+													transform.position.x, transform.position.y, 
+													collisionBox.width, collisionBox.height))	
+				{
+					//decrease health
+					gen_entity_state.health -= 10;
+					
+					//add beam back to energy attacker queue
+					queue_energy_pool_available_array[beam.energy_beam_attacker_index] += 1;
+						
+					//remove beam from vector
+					std::swap(energy_pool_vector[iterator],energy_pool_vector.back());
+					energy_pool_vector.pop_back();
+				}
+					
+			}
+			
+			iterator++;
 		}
 	}
-	*/
+	
+	
+	
 }
 
 
