@@ -28,6 +28,7 @@ public:
 	
 	void render();
 	
+	bool WorldDestroyed();
 	
 private:
 	
@@ -56,6 +57,8 @@ private:
 	void FreeWorldLevel(World* world_ptr);
 	
 	std::uint8_t m_num_players;
+	
+	bool world_destroyed;
 };
 
 #endif

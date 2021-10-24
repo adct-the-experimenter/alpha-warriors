@@ -248,31 +248,19 @@ void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 				
 				energy_attacker.energy_blast = true;
 											
-				//if player is moving
-				if(rigidBody.velocity.x != 0.0f || rigidBody.velocity.y != 0.0f)
-				{
-					float horiz = rigidBody.velocity.x;
-					float vert = -1.0f*rigidBody.velocity.y + 1.0f;
-							
-					energy_attacker.energy_beam_angle_deg = atan2(vert,horiz)*(180.0f / PI);
-				}
-				//if player is not moving
-				else
-				{
-					float angle = 0.0f;
+				float angle = 0.0f;
 					
-					//shoot in the direction that player was facing last frame
-					switch(animation.face_dir)
-					{
-						case FaceDirection::NONE:{ break;}
-						case FaceDirection::NORTH:{ angle = 90.0f; break;}
-						case FaceDirection::EAST:{ angle = 0.0f; break;}
-						case FaceDirection::WEST:{ angle = 180.0f; break;}
-						case FaceDirection::SOUTH:{ angle = -90.0f; break;}
-					}
-					
-					energy_attacker.energy_beam_angle_deg = angle;
+				//shoot in the direction that player was facing last frame
+				switch(animation.face_dir)
+				{
+					case FaceDirection::NONE:{ break;}
+					case FaceDirection::NORTH:{ angle = 90.0f; break;}
+					case FaceDirection::EAST:{ angle = 0.0f; break;}
+					case FaceDirection::WEST:{ angle = 180.0f; break;}
+					case FaceDirection::SOUTH:{ angle = -90.0f; break;}
 				}
+				
+				energy_attacker.energy_beam_angle_deg = angle;
 			}
 		}
 		
@@ -1088,6 +1076,17 @@ void AttackPowerMechanicSystem::HandleCollisionBetweenPlayerAttacksAndWorldTiles
 					world_ptr->tiles_vector[tile_index].type = TileType::BACKGROUND;
 					world_ptr->tiles_vector[tile_index].tile_id = 0;
 					world_ptr->tiles_vector[tile_index].frame_clip_ptr = &world_ptr->frame_clip_map[0];
+				}
+			}
+			else if(world_ptr->tiles_vector[tile_index].type == TileType::PLANET_DESTRUCTION)
+			{
+				//if player(obj) collides with a tile
+				if(CollisionWithTileDetected(world_ptr->tiles_vector[tile_index].x,world_ptr->tiles_vector[tile_index].y,
+								   obj_x, obj_y, obj_width, obj_height) 
+					)
+				{
+					
+					world_ptr->planet_destruction_start = true;
 				}
 			}
 

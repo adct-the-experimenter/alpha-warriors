@@ -67,6 +67,8 @@ bool WorldSystem::Init()
 		m_camera_manager_ptr->lead_cameras[i].SetWorldID(0);
 	}
 	
+	world_destroyed = false;
+	
 	return true;
 }
 
@@ -278,7 +280,8 @@ bool WorldSystem::LoadDataFromXMLFile(World* world_ptr,std::string mapFilePath, 
 			//std::cout << valString << std::endl;
 			
 			if(valString ==  "PUSHBACK"){type = TileType::PUSH_BACK; }
-			else if(valString ==  "BACKGROUND"){ type = TileType::BACKGROUND; }
+			else if(valString == "BACKGROUND"){ type = TileType::BACKGROUND; }
+			else if(valString == "PDESTRUCT"){type = TileType::PLANET_DESTRUCTION;}
 			else{std::cout << "Tile type not handled!" << "i:" << iterator << std::endl; }
 			
 			tile.type = type;
@@ -369,31 +372,18 @@ void WorldSystem::FreeWorldLevel(World* world_ptr)
 
 void WorldSystem::logic(float& dt)
 {
-	//for all players
-	for (auto const& entity : mEntities)
+	World* world_ptr = &world_one;
+	
+	//if planet destruction has started
+	if(world_ptr->planet_destruction_start)
 	{
-		auto& player = gCoordinator.GetComponent<Player>(entity);
-		auto& transform = gCoordinator.GetComponent<Transform2D>(entity);
-		auto& collisionBox = gCoordinator.GetComponent<CollisionBox>(entity);
-			
-		//get world that player is in
-		//get player location in world
+		//start world destruction sequence
 		
+		//play scene of world being destroyed
 		
-		//if player collides with transportation
-			//handle transportation of players
-			
-			//prevent non-camera lead player from inhabiting world alone
-			
-			//if world is not already in active use, load the tiles for it
-			
-			//change world that player is in
-			//change player location in world
-			
-			//set which camera player is in
-		
+		//if scene ended, destroy world, end game
+		world_destroyed = true;
 	}
-			
 }
 
 static void RenderLevelMapRelativeToCameraAndScreen(World* world_ptr,Rectangle& camera,Rectangle& screen)
@@ -508,4 +498,9 @@ void WorldSystem::render()
 		
 	}
 	
+}
+
+bool WorldSystem::WorldDestroyed()
+{
+	return world_destroyed;
 }

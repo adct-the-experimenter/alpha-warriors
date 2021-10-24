@@ -93,8 +93,7 @@ void EnergyAttackSystem::HandleEnergyBeamActivation()
 									transform.position.y - sin(rad_angle)*static_cast<float>(collisionBox.height)};
 				blast.end_point = {transform.position.x + cos(rad_angle)*640.0f, transform.position.y - sin(rad_angle)*360.0f};
 				
-				
-				//blast.collision_rect = {blast.start_point.x, blast.start_point.y, 90.0f,90.0f};
+				blast.collision_rect = {blast.start_point.x, blast.start_point.y, 90.0f,90.0f};
 				
 				float slope_step = 1.5f;
 				
@@ -155,9 +154,48 @@ void EnergyAttackSystem::HandleEnergyBeamMovement(float& dt)
 	//move each energy blast in vector
 	for(auto& blast : large_energy_pool_vector)
 	{
-		//make beam increase in height and width
-		//blast.collision_rect.width += blast.projectile_speed_x*dt;
-		//blast.collision_rect.height += blast.projectile_speed_y*dt;
+		
+		
+		//if moving left
+		if(blast.projectile_speed_x < -2.0f )
+		{
+			//skip if blast collision is out of bounds
+			if(blast.collision_rect.x > 0.0f)
+			{
+				//move left
+				blast.collision_rect.x += blast.projectile_speed_x*dt;
+				//keep same distance between right end and player
+				blast.collision_rect.width += blast.start_point.x - (blast.collision_rect.x + blast.collision_rect.width);
+			}
+			
+			
+		}
+		else
+		{
+			//make beam increase in height and width
+			blast.collision_rect.width += blast.projectile_speed_x*dt;
+		}
+		
+		
+		
+		//if moving up
+		if(blast.projectile_speed_y < -2.0f)
+		{
+			//if blast collision is not out of bounds
+			if(blast.collision_rect.y > 0.0f)
+			{
+				//move up 
+				blast.collision_rect.y += blast.projectile_speed_y*dt;
+				//keep same distance between bottom end and player
+				blast.collision_rect.height += blast.start_point.y - (blast.collision_rect.y + blast.collision_rect.height - 60);
+			}
+			
+		}
+		else
+		{
+			blast.collision_rect.height += blast.projectile_speed_y*dt;
+		}
+		
 		blast.time_active += dt;
 		
 		
@@ -261,9 +299,10 @@ void EnergyAttackSystem::HandleCollisionWithWorldTiles()
 				break;
 			}
 			
+			//if regular push back tiles
 			if(world_ptr->tiles_vector[tile_index].type == TileType::PUSH_BACK)
 			{
-				//if player(obj) collides with a platforms
+				//if object collides with tile
 				if(CollisionWithTileDetected(world_ptr->tiles_vector[tile_index].x,world_ptr->tiles_vector[tile_index].y,
 								   obj_x, obj_y, obj_width, obj_height) 
 					)
@@ -280,6 +319,143 @@ void EnergyAttackSystem::HandleCollisionWithWorldTiles()
 					//remove beam from vector
 					std::swap(energy_pool_vector[iterator],energy_pool_vector.back());
 					energy_pool_vector.pop_back();
+				}
+			}
+			//else if planet destruction tile
+			else if(world_ptr->tiles_vector[tile_index].type == TileType::PLANET_DESTRUCTION)
+			{
+				//if object collides with tile
+				if(CollisionWithTileDetected(world_ptr->tiles_vector[tile_index].x,world_ptr->tiles_vector[tile_index].y,
+								   obj_x, obj_y, obj_width, obj_height) 
+					)
+				{
+					
+					//start planet destruction
+					world_ptr->planet_destruction_start = true;
+					
+					//add beam back to energy attacker queue
+					queue_energy_pool_available_array[beam.energy_beam_attacker_index] += 1;
+					
+					//remove beam from vector
+					std::swap(energy_pool_vector[iterator],energy_pool_vector.back());
+					energy_pool_vector.pop_back();
+				}
+			}
+
+		}		
+				
+		
+		iterator++;
+	}
+	
+	for( auto& blast : large_energy_pool_vector)
+	{
+		size_t iterator = 0;
+		
+		float& obj_x = blast.collision_rect.x;
+		float& obj_y = blast.collision_rect.y; 
+		float& obj_width = blast.collision_rect.width; 
+		float& obj_height = blast.collision_rect.height;
+		
+	
+		size_t horiz_index = trunc(obj_x / 30 );
+		size_t vert_index = trunc((obj_y + 30) / 30 ) * world_num_tile_horizontal;
+
+		size_t object_tile_index = horiz_index + vert_index; 
+
+		std::array <size_t,9> tiles_around_object;
+
+		if(object_tile_index > world_num_tile_horizontal)
+		{
+			tiles_around_object[0] = object_tile_index - world_num_tile_horizontal - 1;
+			tiles_around_object[1] = object_tile_index - world_num_tile_horizontal;
+			tiles_around_object[2] = object_tile_index - world_num_tile_horizontal + 1;
+		}
+		else
+		{
+			tiles_around_object[0] = 0;
+			tiles_around_object[1] = 0;
+			tiles_around_object[2] = 0;
+		}
+
+		if(object_tile_index > 0)
+		{
+			tiles_around_object[3] = object_tile_index - 1;
+		}
+		else
+		{
+			tiles_around_object[3] = 0;
+		}
+
+		tiles_around_object[4] = object_tile_index;
+
+		tiles_around_object[5] = object_tile_index + 1;
+
+		if(object_tile_index < world_num_tile_horizontal*219)
+		{
+			tiles_around_object[6] = object_tile_index + world_num_tile_horizontal - 1;
+			tiles_around_object[7] = object_tile_index + world_num_tile_horizontal;
+			tiles_around_object[8] = object_tile_index + world_num_tile_horizontal + 1;
+		}
+		else
+		{
+			tiles_around_object[6] = world_num_tile_horizontal*220 - 3;
+			tiles_around_object[7] = world_num_tile_horizontal*220 - 2;
+			tiles_around_object[8] = world_num_tile_horizontal*220 - 1;
+		}
+		
+		//for tiles around blast
+		for(size_t i = 0; i < tiles_around_object.size(); i++)
+		{
+			size_t& tile_index = tiles_around_object[i];
+			
+			//if out of bounds
+			if(tile_index > world_num_tile_horizontal*world_num_tile_horizontal - 1)
+			{
+				//add beam back to energy attacker queue
+				queue_energy_pool_available_array[blast.energy_beam_attacker_index] = 4;
+				
+				//remove blast from vector
+				std::swap(large_energy_pool_vector[iterator],large_energy_pool_vector.back());
+				large_energy_pool_vector.pop_back();
+				 
+				break;
+			}
+			
+			//if regular push back tiles
+			if(world_ptr->tiles_vector[tile_index].type == TileType::PUSH_BACK)
+			{
+				//if object collides with tile
+				if(CollisionWithTileDetected(world_ptr->tiles_vector[tile_index].x,world_ptr->tiles_vector[tile_index].y,
+								   obj_x, obj_y, obj_width, obj_height) 
+					)
+				{
+					
+					//change tile to passable background tile
+					world_ptr->tiles_vector[tile_index].type = TileType::BACKGROUND;
+					world_ptr->tiles_vector[tile_index].tile_id = 0;
+					world_ptr->tiles_vector[tile_index].frame_clip_ptr = &world_ptr->frame_clip_map[0];
+					
+				}
+			}
+			//else if planet destruction tile
+			else if(world_ptr->tiles_vector[tile_index].type == TileType::PLANET_DESTRUCTION)
+			{
+				//if object collides with tile
+				if(CollisionWithTileDetected(world_ptr->tiles_vector[tile_index].x,world_ptr->tiles_vector[tile_index].y,
+								   obj_x, obj_y, obj_width, obj_height) 
+					)
+				{
+					
+					//start planet destruction
+					world_ptr->planet_destruction_start = true;
+					
+					//add beam back to energy attacker queue
+					queue_energy_pool_available_array[blast.energy_beam_attacker_index] = 4;
+					
+					//remove beam from vector
+					std::swap(large_energy_pool_vector[iterator],large_energy_pool_vector.back());
+					large_energy_pool_vector.pop_back();
 				}
 			}
 
@@ -381,6 +557,44 @@ void EnergyAttackSystem::HandleCollisionWithGeneralActors()
 			
 			iterator++;
 		}
+		
+		iterator = 0;
+		//for large blasts
+		//check if there is a collision
+		for( auto & blast : large_energy_pool_vector)
+		{
+			//if beam collision rectangle collides with a general actor i.e. player,enemy,object
+			if( CollisionWithRectangleDetected(blast.collision_rect,
+												transform.position.x, transform.position.y, 
+												collisionBox.width, collisionBox.height))	
+			{
+				//if collision is not with energy attacker who made blast
+				if(blast.entity_state_ptr != &gen_entity_state.actor_state)
+				{
+					//decrease health
+					gen_entity_state.health -= 15;
+					
+					//put in general actor in state of taking damage
+					gen_entity_state.taking_damage = true;
+					gen_entity_state.actor_state = EntityState::HURTING_KNOCKBACK;
+					
+					//do not knock back vitcim
+					
+					gen_entity_state.victim_knockback_amt.x = 0.0f;
+					gen_entity_state.victim_knockback_amt.y = 0.0f;
+					
+					//add beam back to energy attacker queue
+					queue_energy_pool_available_array[blast.energy_beam_attacker_index] = 4;
+						
+					//remove beam from vector
+					std::swap(large_energy_pool_vector[iterator],large_energy_pool_vector.back());
+					large_energy_pool_vector.pop_back();
+				}
+				
+			}
+			
+			iterator++;
+		}
 	}
 	
 }
@@ -397,7 +611,7 @@ void EnergyAttackSystem::RenderEnergyBeams_FreeplayMode(CameraManager* camera_ma
 			{
 				Rectangle* camera_rect_ptr = camera_manager_ptr->screens[i].camera_ptr->GetCameraRectPointer();
 				
-				
+				if(!camera_rect_ptr){continue;}
 				
 				//for small energy beams
 				for( auto& beam : energy_pool_vector)
@@ -420,11 +634,11 @@ void EnergyAttackSystem::RenderEnergyBeams_FreeplayMode(CameraManager* camera_ma
 					{
 						continue;
 					}	
-					//DrawRectangle(blast.collision_rect.x - camera_rect_ptr->x, 
-					//		blast.collision_rect.y - camera_rect_ptr->y, 
-					//			blast.collision_rect.width, blast.collision_rect.height, 
-					//			RED);
-					DrawLineEx(blast.start_point, blast.end_point, 90.0f, RED);
+					
+					DrawRectangle(blast.collision_rect.x - camera_rect_ptr->x, 
+							blast.collision_rect.y - camera_rect_ptr->y, 
+								blast.collision_rect.width, blast.collision_rect.height, 
+								RED);
 				}
 				
 			}

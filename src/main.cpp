@@ -562,7 +562,6 @@ void logic()
 			energyAttackSystem->HandleCollisionWithGeneralActors();
 			
 			//react to collisions
-			//attackPowerMechanicSystem->ReactToCollisions(dt);
 			reactionSystem->HandleReactionToCollisions(dt);
 			
 			//destroy tiles if player attack box collides with it
@@ -591,6 +590,13 @@ void logic()
 				winning_player = 0;
 			}
 			
+			//if world is destroyed
+			if(worldSystem->WorldDestroyed())
+			{
+				restart_game = true;
+				worldSystem->FreeResources();
+			}
+			
 			if(restart_game)
 			{
 				//remove components of players in game
@@ -607,6 +613,7 @@ void logic()
 					gCoordinator.RemoveComponent<PhysicsTypeComponent>(entity_it);
 					gCoordinator.RemoveComponent<GeneralEnityState>(entity_it);
 					gCoordinator.RemoveComponent<EnergyAttacker>(entity_it);
+					gCoordinator.RemoveComponent<SoundComponent>(entity_it);
 				}
 				
 				//free loaded character media

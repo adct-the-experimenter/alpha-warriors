@@ -52,7 +52,7 @@ extern std::array <Texture2D,8> stage_profile_textures;
 //************** World *******************
 //****************************************
 
-enum class TileType : std::uint8_t {NONE=0,BACKGROUND,PUSH_BACK};
+enum class TileType : std::uint8_t {NONE=0,BACKGROUND,PUSH_BACK,PLANET_DESTRUCTION};
 
 struct Tile
 {
@@ -100,6 +100,9 @@ struct World
 	
 	//id variable to indicate which world it is
 	std::uint8_t world_id;
+	
+	//
+	bool planet_destruction_start = false;
 };
 
 //The 4 worlds that players can inhabit simultaneously

@@ -28,7 +28,8 @@ struct SmallEnergyBeam
 };
 
 struct LargeEnergyBlast
-{	
+{
+	Rectangle collision_rect;	
 	Vector2 start_point;
 	Vector2 end_point;
 	
