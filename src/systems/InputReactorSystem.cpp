@@ -108,8 +108,14 @@ void InputReactorSystem::Update(ControllerInput& input)
 					if(input.gamepads_vec[i].button_up_released == SDL_CONTROLLER_BUTTON_Y)
 					{
 						player.energyButtonPressed = true;
+						player.time_energy_button_held = 0.0f;
+						player.energyButtonHeld = false;
 					}
-					
+					//if energy button is held down
+					else if(input.gamepads_vec[i].button_down == SDL_CONTROLLER_BUTTON_Y)
+					{
+						player.energyButtonHeld = true;
+					}
 				}				
 				
 				break;

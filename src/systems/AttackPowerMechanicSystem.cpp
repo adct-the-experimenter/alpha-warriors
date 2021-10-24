@@ -234,6 +234,48 @@ void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 						
 		}
 		
+		if(player.energyButtonHeld && !gen_entity_state.taking_damage)
+		{
+			player.time_energy_button_held += dt;
+			
+			//if energy button held down for 2 seconds
+			if(player.time_energy_button_held >= 2.0f)
+			{
+				//activate large energy blast
+				player.time_energy_button_held = 0.0f;
+				
+				auto& energy_attacker = gCoordinator.GetComponent<EnergyAttacker>(entity);
+				
+				energy_attacker.energy_blast = true;
+											
+				//if player is moving
+				if(rigidBody.velocity.x != 0.0f || rigidBody.velocity.y != 0.0f)
+				{
+					float horiz = rigidBody.velocity.x;
+					float vert = -1.0f*rigidBody.velocity.y + 1.0f;
+							
+					energy_attacker.energy_beam_angle_deg = atan2(vert,horiz)*(180.0f / PI);
+				}
+				//if player is not moving
+				else
+				{
+					float angle = 0.0f;
+					
+					//shoot in the direction that player was facing last frame
+					switch(animation.face_dir)
+					{
+						case FaceDirection::NONE:{ break;}
+						case FaceDirection::NORTH:{ angle = 90.0f; break;}
+						case FaceDirection::EAST:{ angle = 0.0f; break;}
+						case FaceDirection::WEST:{ angle = 180.0f; break;}
+						case FaceDirection::SOUTH:{ angle = -90.0f; break;}
+					}
+					
+					energy_attacker.energy_beam_angle_deg = angle;
+				}
+			}
+		}
+		
 		//cool down timers
 		
 		//regular attack cooldown

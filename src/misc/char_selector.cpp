@@ -456,7 +456,7 @@ void CharacterSelector::DetermineConfirmationActions()
 			player_comp.alive = true;
 			
 			player_comp.state = PlayerState::IDLE;
-			
+			player_comp.time_energy_button_held = 0.0f;
 			switch(i)
 			{
 				case 0:

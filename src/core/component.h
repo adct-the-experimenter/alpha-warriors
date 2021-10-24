@@ -163,6 +163,8 @@ struct EnergyAttacker
 {
 	bool send_energy_beam;
 	
+	bool energy_blast;
+	
 	uint8_t queue_id;
 	
 	float energy_beam_angle_deg;
@@ -188,6 +190,9 @@ struct Player
 	
 	//indicate if player pressed the energy beam button
 	bool energyButtonPressed;
+	
+	bool energyButtonHeld;
+	float time_energy_button_held;
 	
 	//bitset to indicate which power a player has
 	std::bitset <8> collected_powers;

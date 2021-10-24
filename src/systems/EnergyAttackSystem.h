@@ -27,6 +27,22 @@ struct SmallEnergyBeam
 	
 };
 
+struct LargeEnergyBlast
+{	
+	Vector2 start_point;
+	Vector2 end_point;
+	
+	//the id of beam that energy attacker is using
+	int8_t energy_beam_attacker_index = -1;
+	
+	float projectile_speed_x;
+	float projectile_speed_y;
+	
+	float time_active;
+	
+	EntityState* entity_state_ptr = nullptr;
+};
+
 #define MAX_ENERGY_BEAMS_PER_ATTACKER 5
 #define MAX_NUM_ATTACKERS 12
 
@@ -60,6 +76,9 @@ std::array <int8_t,MAX_NUM_ATTACKERS> queue_energy_pool_available_array;
 
 //vector to hold energy projectiles on screen
 std::vector <SmallEnergyBeam> energy_pool_vector;
+
+//vector to hold large energy blasts
+std::vector <LargeEnergyBlast> large_energy_pool_vector;
 
 };
  

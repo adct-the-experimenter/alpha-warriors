@@ -24,6 +24,8 @@ void EnergyAttackSystem::Init()
 	
 	energy_pool_vector.reserve(MAX_ENERGY_BEAMS_PER_ATTACKER*MAX_NUM_ATTACKERS);
 	
+	large_energy_pool_vector.reserve(MAX_NUM_ATTACKERS);
+	
 }
 
 void EnergyAttackSystem::HandleEnergyBeamActivation()
@@ -33,46 +35,92 @@ void EnergyAttackSystem::HandleEnergyBeamActivation()
 		auto& energy_attacker = gCoordinator.GetComponent<EnergyAttacker>(entity);
 		auto& transform = gCoordinator.GetComponent<Transform2D>(entity);
 		auto& collisionBox = gCoordinator.GetComponent<CollisionBox>(entity);
+		auto& gen_entity_state = gCoordinator.GetComponent<GeneralEnityState>(entity);
 		
 		//if energy beams available from queue and energy beam requested
 		if(queue_energy_pool_available_array[energy_attacker.queue_id] != -1 
-			&& energy_attacker.send_energy_beam)
+			)
 		{
-		
-			//take off 1 energy beam from available pool
-			queue_energy_pool_available_array[energy_attacker.queue_id] -= 1;
+			//if sending energy beam
+			if(energy_attacker.send_energy_beam)
+			{
+				//take off 1 energy beam from available pool
+				queue_energy_pool_available_array[energy_attacker.queue_id] -= 1;
+				
+				energy_attacker.send_energy_beam = false;
+				
+				//add to vector of energy beams on screen
+				energy_pool_vector.emplace_back(SmallEnergyBeam());
+				
+				//set small energy beam collision, start, end, and reference to energy beam pool index
+				SmallEnergyBeam& beam = energy_pool_vector.back();
+				
+				float rad_angle = energy_attacker.energy_beam_angle_deg * ( PI / 180.0f);
+				beam.start_point = {transform.position.x + cos(rad_angle)*static_cast<float>(collisionBox.width), 
+									transform.position.y - sin(rad_angle)*static_cast<float>(collisionBox.height)};
+				beam.end_point = {transform.position.x + cos(rad_angle)*640.0f, transform.position.y - sin(rad_angle)*360.0f};
+				
+				beam.collision_rect = {beam.start_point.x, beam.start_point.y, 30.0f,30.0f};
+				
+				float slope_step = 0.5f;
+				
+				beam.projectile_speed_x = (beam.end_point.x - beam.start_point.x) / slope_step;
+				
+				beam.projectile_speed_y = (beam.end_point.y - beam.start_point.y) / slope_step;
+							
+				beam.energy_beam_attacker_index = energy_attacker.queue_id;
+				
+				beam.time_active = 0.0f;
+			}
+			//else if large energy blast
+			else if(energy_attacker.energy_blast)
+			{
+				std::cout << "Large energy blast activated!\n";
+				
+				//take off all energy beams from pool
+				queue_energy_pool_available_array[energy_attacker.queue_id] = -1;
+				
+				energy_attacker.energy_blast = false;
+				
+				//add to vector of energy beams on screen
+				large_energy_pool_vector.emplace_back(LargeEnergyBlast());
+				
+				//set small energy beam collision, start, end, and reference to energy beam pool index
+				LargeEnergyBlast& blast = large_energy_pool_vector.back();
+				
+				float rad_angle = energy_attacker.energy_beam_angle_deg * ( PI / 180.0f);
+				blast.start_point = {transform.position.x + cos(rad_angle)*static_cast<float>(collisionBox.width), 
+									transform.position.y - sin(rad_angle)*static_cast<float>(collisionBox.height)};
+				blast.end_point = {transform.position.x + cos(rad_angle)*640.0f, transform.position.y - sin(rad_angle)*360.0f};
+				
+				
+				//blast.collision_rect = {blast.start_point.x, blast.start_point.y, 90.0f,90.0f};
+				
+				float slope_step = 1.5f;
+				
+				blast.projectile_speed_x = (blast.end_point.x - blast.start_point.x) / slope_step;
+				
+				blast.projectile_speed_y = (blast.end_point.y - blast.start_point.y) / slope_step;
+							
+				blast.energy_beam_attacker_index = energy_attacker.queue_id;
+				
+				blast.time_active = 0.0f;
+				
+				//keep energy attacker from moving
+				gen_entity_state.actor_state = EntityState::ATTACKING_NO_MOVE;
+				blast.entity_state_ptr = &gen_entity_state.actor_state;
+			}
 			
-			energy_attacker.send_energy_beam = false;
-			
-			//add to vector of energy beams on screen
-			energy_pool_vector.emplace_back(SmallEnergyBeam());
-			
-			//set small energy beam collision, start, end, and reference to energy beam pool index
-			SmallEnergyBeam& beam = energy_pool_vector.back();
-			
-			float rad_angle = energy_attacker.energy_beam_angle_deg * ( PI / 180.0f);
-			beam.start_point = {transform.position.x + cos(rad_angle)*static_cast<float>(collisionBox.width), 
-								transform.position.y - sin(rad_angle)*static_cast<float>(collisionBox.height)};
-			beam.end_point = {transform.position.x + cos(rad_angle)*640.0f, transform.position.y - sin(rad_angle)*360.0f};
-			
-			beam.collision_rect = {beam.start_point.x, beam.start_point.y, 30.0f,30.0f};
-			
-			float slope_step = 0.5f;
-			
-			beam.projectile_speed_x = (beam.end_point.x - beam.start_point.x) / slope_step;
-			
-			beam.projectile_speed_y = (beam.end_point.y - beam.start_point.y) / slope_step;
-						
-			beam.energy_beam_attacker_index = energy_attacker.queue_id;
-			
-			beam.time_active = 0.0f;
 		}
 		
 	}
 }
 
 //time limit of 3 seconds for energy projectiles
-static const float time_limit = 3.0f;
+static const float small_time_limit = 3.0f;
+
+//time limit of 6 seconds for energy blasts
+static const float large_time_limit = 6.0f;
 
 void EnergyAttackSystem::HandleEnergyBeamMovement(float& dt)
 {
@@ -87,7 +135,7 @@ void EnergyAttackSystem::HandleEnergyBeamMovement(float& dt)
 		beam.time_active += dt;
 		
 		//if time limit passed
-		if(beam.time_active > time_limit)
+		if(beam.time_active > small_time_limit)
 		{
 			
 			//add beam back to energy attacker queue
@@ -97,6 +145,34 @@ void EnergyAttackSystem::HandleEnergyBeamMovement(float& dt)
 			std::swap(energy_pool_vector[iterator],energy_pool_vector.back());
 			energy_pool_vector.pop_back();
 			
+		}
+		
+		iterator++;
+	}
+	
+	iterator = 0;
+	
+	//move each energy blast in vector
+	for(auto& blast : large_energy_pool_vector)
+	{
+		//make beam increase in height and width
+		//blast.collision_rect.width += blast.projectile_speed_x*dt;
+		//blast.collision_rect.height += blast.projectile_speed_y*dt;
+		blast.time_active += dt;
+		
+		
+		//if time limit passed
+		if(blast.time_active > large_time_limit)
+		{
+			//add all beams back to energy attacker queue
+			queue_energy_pool_available_array[blast.energy_beam_attacker_index] = 4;
+			
+			//free energy attacker to move again
+			*blast.entity_state_ptr = EntityState::NONE;
+			
+			//remove beam from vector
+			std::swap(large_energy_pool_vector[iterator],large_energy_pool_vector.back());
+			large_energy_pool_vector.pop_back();
 		}
 		
 		iterator++;
@@ -265,10 +341,9 @@ void EnergyAttackSystem::HandleCollisionWithGeneralActors()
 		auto& transform = gCoordinator.GetComponent<Transform2D>(entity);
 		auto& collisionBox = gCoordinator.GetComponent<CollisionBox>(entity);
 		auto& gen_entity_state = gCoordinator.GetComponent<GeneralEnityState>(entity);
-		auto& rigidBody = gCoordinator.GetComponent<RigidBody2D>(entity);
 		
 		size_t iterator = 0;
-		//for every beam
+		//for every small beam
 		//check if there is a collision
 		for( auto& beam : energy_pool_vector)
 		{
@@ -291,7 +366,7 @@ void EnergyAttackSystem::HandleCollisionWithGeneralActors()
 				float sign_y = 1.0f;
 				if(beam.projectile_speed_y < -10.0f){sign_y = -1.0f;}
 				
-				float tiles_knock = 2.0f;
+				float tiles_knock = 1.0f;
 				
 				gen_entity_state.victim_knockback_amt.x = sign_x*tiles_knock;
 				gen_entity_state.victim_knockback_amt.y = sign_y*tiles_knock;
@@ -308,42 +383,57 @@ void EnergyAttackSystem::HandleCollisionWithGeneralActors()
 		}
 	}
 	
-	
-	
 }
 
 
 void EnergyAttackSystem::RenderEnergyBeams_FreeplayMode(CameraManager* camera_manager_ptr)
 {
-	for( auto& beam : energy_pool_vector)
+	
+	for(size_t i = 0; i < camera_manager_ptr->screens.size(); i++)
 	{
-		for(size_t i = 0; i < camera_manager_ptr->screens.size(); i++)
+		if(camera_manager_ptr->screens[i].in_active_use)
 		{
-			if(camera_manager_ptr->screens[i].in_active_use)
+			if(camera_manager_ptr->screens[i].camera_ptr)
 			{
-				if(camera_manager_ptr->screens[i].camera_ptr)
+				Rectangle* camera_rect_ptr = camera_manager_ptr->screens[i].camera_ptr->GetCameraRectPointer();
+				
+				
+				
+				//for small energy beams
+				for( auto& beam : energy_pool_vector)
 				{
-					Rectangle* camera_rect_ptr = camera_manager_ptr->screens[i].camera_ptr->GetCameraRectPointer();
-					
 					if(beam.collision_rect.x < camera_rect_ptr->x || beam.collision_rect.y < camera_rect_ptr->y)
 					{
 						continue;
 					}
-					
+								
 					DrawRectangle(beam.collision_rect.x - camera_rect_ptr->x, 
-								beam.collision_rect.y - camera_rect_ptr->y, 
-									beam.collision_rect.width, beam.collision_rect.height, 
-									RED);
-					
+							beam.collision_rect.y - camera_rect_ptr->y, 
+								beam.collision_rect.width, beam.collision_rect.height, 
+								RED);
 				}
-				else
+				
+				//for large energy blast
+				for(auto& blast: large_energy_pool_vector)
 				{
-					std::cout << "Uninitialized camera for active screen!\n";
+					if(blast.start_point.x < camera_rect_ptr->x || blast.start_point.y < camera_rect_ptr->y)
+					{
+						continue;
+					}	
+					//DrawRectangle(blast.collision_rect.x - camera_rect_ptr->x, 
+					//		blast.collision_rect.y - camera_rect_ptr->y, 
+					//			blast.collision_rect.width, blast.collision_rect.height, 
+					//			RED);
+					DrawLineEx(blast.start_point, blast.end_point, 90.0f, RED);
 				}
+				
 			}
-			
+			else
+			{
+				std::cout << "Uninitialized camera for active screen!\n";
+			}
 		}
-			
 		
 	}
+			
 }
