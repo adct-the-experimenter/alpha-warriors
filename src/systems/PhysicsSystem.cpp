@@ -545,23 +545,14 @@ static void CheckCollisionWithLevelBounds_MetroidVania(float& obj_x, float& obj_
 	}
 	
 	//if go above up bound
-	if(obj_y + 2*obj_height <= level_bound_up_y)
+	if(obj_y <= level_bound_up_y)
 	{
-		//push back player 
-		PushBack(obj_x, obj_y, 
-			obj_vx, obj_vy, 
-			dt);
 		obj_y = level_bound_up_y + 1;
 	}
 	
 	//if go below down bound
 	else if(obj_y + obj_height >= level_bound_down_y)
-	{
-		//push back player 
-		PushBack(obj_x, obj_y, 
-			obj_vx, obj_vy, 
-			dt);
-		
+	{	
 		obj_y = level_bound_down_y - obj_height - 1;
 	}
 }

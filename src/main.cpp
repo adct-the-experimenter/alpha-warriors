@@ -727,7 +727,7 @@ void render()
 			
 			worldSystem->render();
 			
-			energyAttackSystem->RenderEnergyBeams_FreeplayMode(&main_camera_manager);
+			energyAttackSystem->RenderEnergyBeams_FreeplayMode(main_camera_manager);
 			
 			//render any entity that has render component
 			renderSystem->Update_MetroidVaniaMode();

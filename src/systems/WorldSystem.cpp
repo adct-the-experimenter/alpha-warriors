@@ -78,6 +78,8 @@ void WorldSystem::FreeResources()
 	if(world_one.in_active_use)
 	{
 		FreeWorldLevel(&world_one);
+		world_one.planet_destruction_start = false;
+		
 	}
 	
 	if(world_two.in_active_use)
@@ -94,6 +96,8 @@ void WorldSystem::FreeResources()
 	{
 		FreeWorldLevel(&world_one);
 	}
+	
+	world_destroyed = false;
 }
 
 void WorldSystem::SetPointerToCameraManager(CameraManager* cam_manager_ptr){m_camera_manager_ptr = cam_manager_ptr;}

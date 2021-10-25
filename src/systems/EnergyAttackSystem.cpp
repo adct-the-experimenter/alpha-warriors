@@ -88,7 +88,9 @@ void EnergyAttackSystem::HandleEnergyBeamActivation()
 				//set small energy beam collision, start, end, and reference to energy beam pool index
 				LargeEnergyBlast& blast = large_energy_pool_vector.back();
 				
+				std::cout << "blast angle: " << energy_attacker.energy_beam_angle_deg << std::endl;
 				float rad_angle = energy_attacker.energy_beam_angle_deg * ( PI / 180.0f);
+				
 				blast.start_point = {transform.position.x + cos(rad_angle)*static_cast<float>(collisionBox.width), 
 									transform.position.y - sin(rad_angle)*static_cast<float>(collisionBox.height)};
 				blast.end_point = {transform.position.x + cos(rad_angle)*640.0f, transform.position.y - sin(rad_angle)*360.0f};
@@ -97,9 +99,27 @@ void EnergyAttackSystem::HandleEnergyBeamActivation()
 				
 				float slope_step = 1.5f;
 				
-				blast.projectile_speed_x = (blast.end_point.x - blast.start_point.x) / slope_step;
+				float speed_x = 0.0f;
+				float speed_y = 0.0f;
 				
-				blast.projectile_speed_y = (blast.end_point.y - blast.start_point.y) / slope_step;
+				if(energy_attacker.energy_beam_angle_deg == 0.0f || energy_attacker.energy_beam_angle_deg == 180.0f)
+				{
+					speed_x = (blast.end_point.x - blast.start_point.x) / slope_step;
+					
+					if(energy_attacker.energy_beam_angle_deg == 0.0f){blast.face_dir = FaceDirection::EAST;}
+					if(energy_attacker.energy_beam_angle_deg == 180.0f){blast.face_dir = FaceDirection::WEST;}
+				}
+				else if(energy_attacker.energy_beam_angle_deg == 90.0f || energy_attacker.energy_beam_angle_deg == -90.0f)
+				{
+					 speed_y = (blast.end_point.y - blast.start_point.y) / slope_step;
+					 
+					if(energy_attacker.energy_beam_angle_deg == 90.0f){blast.face_dir = FaceDirection::NORTH;}
+					if(energy_attacker.energy_beam_angle_deg == -90.0f){blast.face_dir = FaceDirection::SOUTH;}
+				}
+				
+				blast.projectile_speed_x = speed_x;
+				
+				blast.projectile_speed_y = speed_y;
 							
 				blast.energy_beam_attacker_index = energy_attacker.queue_id;
 				
@@ -172,8 +192,13 @@ void EnergyAttackSystem::HandleEnergyBeamMovement(float& dt)
 		}
 		else
 		{
-			//make beam increase in height and width
-			blast.collision_rect.width += blast.projectile_speed_x*dt;
+			//if width is nout out of bounds
+			if(blast.collision_rect.width < 0.5f*world_num_tile_horizontal*30.0f)
+			{
+				//make beam increase in height and width
+				blast.collision_rect.width += blast.projectile_speed_x*dt;
+			}
+			
 		}
 		
 		
@@ -193,7 +218,12 @@ void EnergyAttackSystem::HandleEnergyBeamMovement(float& dt)
 		}
 		else
 		{
-			blast.collision_rect.height += blast.projectile_speed_y*dt;
+			//if height is nout out of bounds
+			if(blast.collision_rect.height < 0.5f*world_num_tile_horizontal*30.0f)
+			{
+				blast.collision_rect.height += blast.projectile_speed_y*dt;
+			}
+			
 		}
 		
 		blast.time_active += dt;
@@ -352,17 +382,39 @@ void EnergyAttackSystem::HandleCollisionWithWorldTiles()
 	{
 		size_t iterator = 0;
 		
-		float& obj_x = blast.collision_rect.x;
-		float& obj_y = blast.collision_rect.y; 
+		float obj_x = 0.0f;
+		float obj_y = 0.0f; 
 		float& obj_width = blast.collision_rect.width; 
 		float& obj_height = blast.collision_rect.height;
 		
-	
-		size_t horiz_index = trunc(obj_x / 30 );
+		if(blast.face_dir == FaceDirection::WEST)
+		{
+			obj_x = blast.collision_rect.x;
+			obj_y = blast.collision_rect.y;
+		}
+		else if(blast.face_dir == FaceDirection::EAST)
+		{
+			obj_x = blast.collision_rect.x + obj_width;
+			obj_y = blast.collision_rect.y;
+		}
+		else if(blast.face_dir == FaceDirection::NORTH)
+		{
+			obj_x = blast.collision_rect.x;
+			obj_y = blast.collision_rect.y;
+		}
+		else if(blast.face_dir == FaceDirection::SOUTH)
+		{
+			obj_x = blast.collision_rect.x;
+			obj_y = blast.collision_rect.y + obj_height;
+		}
+		
+		size_t horiz_index = trunc((obj_x) / 30 );
 		size_t vert_index = trunc((obj_y + 30) / 30 ) * world_num_tile_horizontal;
 
 		size_t object_tile_index = horiz_index + vert_index; 
-
+		
+		//std::cout << "blast obj tile index:" << object_tile_index << std::endl;
+		
 		std::array <size_t,9> tiles_around_object;
 
 		if(object_tile_index > world_num_tile_horizontal)
@@ -399,9 +451,9 @@ void EnergyAttackSystem::HandleCollisionWithWorldTiles()
 		}
 		else
 		{
-			tiles_around_object[6] = world_num_tile_horizontal*220 - 3;
-			tiles_around_object[7] = world_num_tile_horizontal*220 - 2;
-			tiles_around_object[8] = world_num_tile_horizontal*220 - 1;
+			tiles_around_object[6] = world_num_tile_horizontal*world_num_tile_horizontal - 3;
+			tiles_around_object[7] = world_num_tile_horizontal*world_num_tile_horizontal - 2;
+			tiles_around_object[8] = world_num_tile_horizontal*world_num_tile_horizontal - 1;
 		}
 		
 		//for tiles around blast
@@ -561,7 +613,7 @@ void EnergyAttackSystem::HandleCollisionWithGeneralActors()
 		iterator = 0;
 		//for large blasts
 		//check if there is a collision
-		for( auto & blast : large_energy_pool_vector)
+		for( auto& blast : large_energy_pool_vector)
 		{
 			//if beam collision rectangle collides with a general actor i.e. player,enemy,object
 			if( CollisionWithRectangleDetected(blast.collision_rect,
@@ -600,46 +652,51 @@ void EnergyAttackSystem::HandleCollisionWithGeneralActors()
 }
 
 
-void EnergyAttackSystem::RenderEnergyBeams_FreeplayMode(CameraManager* camera_manager_ptr)
+void EnergyAttackSystem::RenderEnergyBeams_FreeplayMode(CameraManager& camera_manager_ptr)
 {
 	
-	for(size_t i = 0; i < camera_manager_ptr->screens.size(); i++)
+	for(size_t i = 0; i < camera_manager_ptr.screens.size(); i++)
 	{
-		if(camera_manager_ptr->screens[i].in_active_use)
+		if(camera_manager_ptr.screens[i].in_active_use)
 		{
-			if(camera_manager_ptr->screens[i].camera_ptr)
+			if(camera_manager_ptr.screens[i].camera_ptr)
 			{
-				Rectangle* camera_rect_ptr = camera_manager_ptr->screens[i].camera_ptr->GetCameraRectPointer();
+				Rectangle* camera_rect_ptr = camera_manager_ptr.screens[i].camera_ptr->GetCameraRectPointer();
 				
 				if(!camera_rect_ptr){continue;}
 				
 				//for small energy beams
 				for( auto& beam : energy_pool_vector)
 				{
-					if(beam.collision_rect.x < camera_rect_ptr->x || beam.collision_rect.y < camera_rect_ptr->y)
+					if(beam.collision_rect.x > camera_rect_ptr->x && beam.collision_rect.y > camera_rect_ptr->y
+						&& beam.collision_rect.x < camera_rect_ptr->x + camera_rect_ptr->width
+						&& beam.collision_rect.y < camera_rect_ptr->y + camera_rect_ptr->height)
 					{
-						continue;
-					}
-								
-					DrawRectangle(beam.collision_rect.x - camera_rect_ptr->x, 
+						DrawRectangle(beam.collision_rect.x - camera_rect_ptr->x, 
 							beam.collision_rect.y - camera_rect_ptr->y, 
 								beam.collision_rect.width, beam.collision_rect.height, 
 								RED);
+					}
+								
+					
 				}
 				
-				//for large energy blast
 				for(auto& blast: large_energy_pool_vector)
 				{
-					if(blast.start_point.x < camera_rect_ptr->x || blast.start_point.y < camera_rect_ptr->y)
+					//printf("blast collision rect:%f,%f,%f,%f\n",blast.collision_rect.x,blast.collision_rect.y,
+					//										blast.collision_rect.width, blast.collision_rect.height);
+					
+					if(blast.collision_rect.x > camera_rect_ptr->x && blast.collision_rect.y > camera_rect_ptr->y)
 					{
-						continue;
+						DrawRectangle(blast.collision_rect.x - camera_rect_ptr->x, 
+							blast.collision_rect.y - camera_rect_ptr->y, 
+							blast.collision_rect.width, blast.collision_rect.height, 
+							RED);
 					}	
 					
-					DrawRectangle(blast.collision_rect.x - camera_rect_ptr->x, 
-							blast.collision_rect.y - camera_rect_ptr->y, 
-								blast.collision_rect.width, blast.collision_rect.height, 
-								RED);
+					
 				}
+				
 				
 			}
 			else

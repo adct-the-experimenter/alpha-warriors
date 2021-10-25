@@ -39,9 +39,12 @@ struct LargeEnergyBlast
 	float projectile_speed_x;
 	float projectile_speed_y;
 	
+	
 	float time_active;
 	
 	EntityState* entity_state_ptr = nullptr;
+	
+	FaceDirection face_dir;
 };
 
 #define MAX_ENERGY_BEAMS_PER_ATTACKER 5
@@ -68,7 +71,7 @@ void HandleCollisionWithWorldTiles();
 void HandleCollisionWithGeneralActors();
 
 //function to draw energy beams
-void RenderEnergyBeams_FreeplayMode(CameraManager* camera_manager_ptr);
+void RenderEnergyBeams_FreeplayMode(CameraManager& camera_manager_ptr);
 
 private:
 
