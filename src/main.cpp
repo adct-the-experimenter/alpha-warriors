@@ -547,7 +547,6 @@ void logic()
 		}
 		case GameState::METROIDVANIA_GAME:
 		{
-			worldSystem->logic(dt);
 			
 			//handle activating powers based on input
 			attackPowerMechanicSystem->HandlePowerActivation(dt);
@@ -589,6 +588,8 @@ void logic()
 			{
 				winning_player = 0;
 			}
+			
+			worldSystem->logic(dt);
 			
 			//if world is destroyed
 			if(worldSystem->WorldDestroyed())
@@ -1008,6 +1009,7 @@ void InitMainECS()
 	world_system_sig.set( gCoordinator.GetComponentType<Player>() );
 	world_system_sig.set( gCoordinator.GetComponentType<Transform2D>() );
 	world_system_sig.set( gCoordinator.GetComponentType<CollisionBox>() );
+	world_system_sig.set( gCoordinator.GetComponentType<GeneralEnityState>() );
 	
 	gCoordinator.SetSystemSignature<WorldSystem>(world_system_sig);
 	

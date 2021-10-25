@@ -374,6 +374,9 @@ void WorldSystem::FreeWorldLevel(World* world_ptr)
 	
 }
 
+static float time_scene_count = 0.0f;
+static const float time_limit_scene = 10.0f;
+
 void WorldSystem::logic(float& dt)
 {
 	World* world_ptr = &world_one;
@@ -381,12 +384,29 @@ void WorldSystem::logic(float& dt)
 	//if planet destruction has started
 	if(world_ptr->planet_destruction_start)
 	{
+		//kill off all players
+		for(auto& entity : mEntities)
+		{
+			auto& player = gCoordinator.GetComponent<Player>(entity);
+			auto& gen_entity_state = gCoordinator.GetComponent<GeneralEnityState>(entity);
+			
+			player.alive = false;
+			gen_entity_state.health = 0;
+		}
 		//start world destruction sequence
 		
 		//play scene of world being destroyed
 		
 		//if scene ended, destroy world, end game
-		world_destroyed = true;
+		if(time_scene_count < time_limit_scene && !world_destroyed)
+		{
+			time_scene_count += dt;
+		}
+		else
+		{
+			world_destroyed = true;
+		}
+		
 	}
 }
 
@@ -458,7 +478,7 @@ void WorldSystem::render()
 	
 	//only render tiles near player
 	
-	if(world_one.in_active_use)
+	if(world_one.in_active_use && !world_one.planet_destruction_start)
 	{
 		for(size_t i = 0; i < m_camera_manager_ptr->screens.size(); i++)
 		{
@@ -500,6 +520,10 @@ void WorldSystem::render()
 		}
 		
 		
+	}
+	else if(world_one.in_active_use && world_one.planet_destruction_start)
+	{
+		DrawText("The world has been destroyed...",100, 100, 20, RED);
 	}
 	
 }
