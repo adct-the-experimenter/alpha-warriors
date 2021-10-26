@@ -233,7 +233,11 @@ void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 			}
 						
 		}
-		
+		else
+		{
+			auto& energy_attacker = gCoordinator.GetComponent<EnergyAttacker>(entity);
+			energy_attacker.send_energy_beam = false;
+		}
 		if(player.energyButtonHeld && !gen_entity_state.taking_damage)
 		{
 			player.time_energy_button_held += dt;
@@ -263,7 +267,12 @@ void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 				energy_attacker.energy_beam_angle_deg = angle;
 			}
 		}
-		
+		else
+		{
+			player.energyButtonHeld = false;
+			auto& energy_attacker = gCoordinator.GetComponent<EnergyAttacker>(entity);
+			energy_attacker.energy_blast = false;
+		}
 		//cool down timers
 		
 		//regular attack cooldown

@@ -55,6 +55,7 @@ struct LargeEnergyBlast
 	bool in_beam_struggle;
 };
 
+
 #define MAX_ENERGY_BEAMS_PER_ATTACKER 5
 #define MAX_NUM_ATTACKERS 12
 
@@ -107,6 +108,13 @@ void DeactivateInLargeEnergyPool(size_t& iterator);
 //for beam struggle
 //indicates if energy attacker has pressed button
 std::array <bool,MAX_NUM_ATTACKERS> energy_attacker_energy_button_pressed;
+
+//beam struggle
+void HandleBeamStruggleBetweenTwoBeams(LargeEnergyBlast& blast_one, LargeEnergyBlast& blast_two, float& dt);
+
+//function to move blast
+void MoveBlast(LargeEnergyBlast& blast, float& dt);
+void MoveBlastBack(LargeEnergyBlast& blast, float& dt);
 
 };
  
