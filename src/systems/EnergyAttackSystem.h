@@ -42,12 +42,17 @@ struct LargeEnergyBlast
 	float projectile_speed_x;
 	float projectile_speed_y;
 	
-	
 	float time_active;
 	
 	EntityState* entity_state_ptr = nullptr;
 	
 	FaceDirection face_dir;
+	
+	//line ending to show ending of beam rectangle
+	Rectangle line_end;
+	
+	//for beam struggle
+	bool in_beam_struggle;
 };
 
 #define MAX_ENERGY_BEAMS_PER_ATTACKER 5
@@ -98,6 +103,10 @@ void ActivateInLargeEnergyPool(size_t& index, bool& activated);
 //function to remove energy from energy pool
 void DeactivateInSmallEnergyPool(size_t& iterator);
 void DeactivateInLargeEnergyPool(size_t& iterator);
+
+//for beam struggle
+//indicates if energy attacker has pressed button
+std::array <bool,MAX_NUM_ATTACKERS> energy_attacker_energy_button_pressed;
 
 };
  

@@ -560,6 +560,9 @@ void logic()
 			attackPowerMechanicSystem->CollisionDetectionBetweenPlayers();
 			energyAttackSystem->HandleCollisionWithGeneralActors();
 			
+			//check collisions between energy attacks
+			energyAttackSystem->HandleEnergyToEnergyCollisions(dt);
+			
 			//react to collisions
 			reactionSystem->HandleReactionToCollisions(dt);
 			

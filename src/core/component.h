@@ -168,6 +168,7 @@ struct EnergyAttacker
 	uint8_t queue_id;
 	
 	float energy_beam_angle_deg;
+	
 };
 
 
