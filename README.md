@@ -40,7 +40,7 @@ A = Attack
 
 B = Jump
 
-Y = Energy Projectile
+Y = Energy Projectile, Hold for large energy blast
 
 Right Shoulder/Trigger = Special
 
