@@ -12,6 +12,7 @@
 
 struct SmallEnergyBeam
 {
+	bool active = false;
 	
 	Rectangle collision_rect;
 	Vector2 start_point;
@@ -29,6 +30,8 @@ struct SmallEnergyBeam
 
 struct LargeEnergyBlast
 {
+	bool active = false;
+	
 	Rectangle collision_rect;	
 	Vector2 start_point;
 	Vector2 end_point;
@@ -64,6 +67,9 @@ void HandleEnergyBeamActivation();
 //function to handle energy beam movement
 void HandleEnergyBeamMovement(float& dt);
 
+//function to handle collision against other energy projectiles
+void HandleEnergyToEnergyCollisions(float& dt);
+
 //function to handle collision against tile
 void HandleCollisionWithWorldTiles();
 
@@ -83,6 +89,15 @@ std::vector <SmallEnergyBeam> energy_pool_vector;
 
 //vector to hold large energy blasts
 std::vector <LargeEnergyBlast> large_energy_pool_vector;
+
+
+//function to add energy from energy pool
+void ActivateInSmallEnergyPool(size_t& index, bool& activated);
+void ActivateInLargeEnergyPool(size_t& index, bool& activated);
+
+//function to remove energy from energy pool
+void DeactivateInSmallEnergyPool(size_t& iterator);
+void DeactivateInLargeEnergyPool(size_t& iterator);
 
 };
  
