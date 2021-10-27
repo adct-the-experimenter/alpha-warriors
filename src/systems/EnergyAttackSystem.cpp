@@ -19,7 +19,9 @@ void EnergyAttackSystem::Init()
 	for (auto const& entity : mEntities)
 	{
 		auto& energy_attacker = gCoordinator.GetComponent<EnergyAttacker>(entity);
-		energy_attacker_energy_button_pressed[iterator] = &energy_attacker.send_energy_beam; 
+		energy_attacker.queue_id = iterator;
+		energy_attacker_energy_button_pressed[iterator] = &energy_attacker.send_energy_beam;
+		iterator++; 
 	}
 	
 	//initialize queue for all attackers
@@ -168,8 +170,8 @@ void EnergyAttackSystem::HandleEnergyBeamActivation()
 		{
 			//for beam struggle
 			energy_attacker_energy_button_pressed[energy_attacker.queue_id] = energy_attacker.send_energy_beam;
-			std::cout << "energy attacker " << int(energy_attacker.queue_id) 
-					<< " energy button press: " << energy_attacker.send_energy_beam << std::endl;
+			//std::cout << "energy attacker " << int(energy_attacker.queue_id) 
+			//		<< " energy button press: " << energy_attacker.send_energy_beam << std::endl;
 		}
 		
 	}
@@ -217,7 +219,7 @@ void EnergyAttackSystem::HandleEnergyBeamMovement(float& dt)
 	for(auto& blast : large_energy_pool_vector)
 	{
 		//skip if not active or in beam struggle
-		if(!blast.active || blast.in_beam_struggle){continue;}
+		if(!blast.active || blast.in_beam_struggle){iterator++; continue;}
 		
 		EnergyAttackSystem::MoveBlast(blast,dt);
 		
@@ -379,6 +381,7 @@ void EnergyAttackSystem::HandleEnergyToEnergyCollisions(float& dt)
 			if(CheckCollisionRectangles(large_energy_pool_vector[left_index].collision_rect,
 										large_energy_pool_vector[current_index].collision_rect))
 			{
+				//std::cout << "Beam struggle!\n";
 				EnergyAttackSystem::HandleBeamStruggleBetweenTwoBeams(large_energy_pool_vector[left_index],
 																	  large_energy_pool_vector[current_index],
 																	  dt);
@@ -790,6 +793,8 @@ void EnergyAttackSystem::HandleCollisionWithGeneralActors()
 						
 					//remove beam from vector
 					EnergyAttackSystem::DeactivateInLargeEnergyPool(iterator);
+					
+					
 				}
 				
 			}
@@ -913,6 +918,7 @@ void EnergyAttackSystem::DeactivateInSmallEnergyPool(size_t& iterator)
 void EnergyAttackSystem::DeactivateInLargeEnergyPool(size_t& iterator)
 {	
 	large_energy_pool_vector[iterator].active = false;
+	large_energy_pool_vector[iterator].in_beam_struggle = false;
 }
 
 void EnergyAttackSystem::HandleBeamStruggleBetweenTwoBeams(LargeEnergyBlast& blast_one, LargeEnergyBlast& blast_two, float& dt)
@@ -923,15 +929,16 @@ void EnergyAttackSystem::HandleBeamStruggleBetweenTwoBeams(LargeEnergyBlast& bla
 	blast_one.in_beam_struggle = true;
 	blast_two.in_beam_struggle = true;
 	
+	
 	bool& blast_one_energy_press = energy_attacker_energy_button_pressed[blast_one.energy_beam_attacker_index];
-	std::cout << "blast one energy attacker " << int(blast_one.energy_beam_attacker_index) 
-		<< " energy button press: " << blast_one_energy_press << std::endl;
+	//std::cout << "blast one energy attacker " << int(blast_one.energy_beam_attacker_index) 
+	//	<< " energy button press: " << blast_one_energy_press << std::endl;
 	bool& blast_two_energy_press = energy_attacker_energy_button_pressed[blast_two.energy_beam_attacker_index];
-	std::cout << "blast two energy attacker " << int(blast_two.energy_beam_attacker_index) 
-		<< " energy button press: " << blast_two_energy_press << std::endl;
+	//std::cout << "blast two energy attacker " << int(blast_two.energy_beam_attacker_index) 
+	//	<< " energy button press: " << blast_two_energy_press << std::endl;
 		
-	auto& grow_blast = blast_one;
-	auto& weaken_blast = blast_one;
+	LargeEnergyBlast* grow_blast = nullptr;
+	LargeEnergyBlast* weaken_blast = nullptr;
 	
 	//check if energy attackers of blasts have pressed energy button
 	//if both players pressed on same frame
@@ -950,36 +957,65 @@ void EnergyAttackSystem::HandleBeamStruggleBetweenTwoBeams(LargeEnergyBlast& bla
 	else if(blast_one_energy_press && !blast_two_energy_press)
 	{
 		//grow blast one
-		grow_blast = blast_one;
-		weaken_blast = blast_two;
-		std::cout << "blast one attack grows.\n";
+		grow_blast = &blast_one;
+		weaken_blast = &blast_two;
+		//std::cout << "blast one attack grows.\n";
 	}
 	//else if blast two player pressed and the other did not
 	else if(!blast_one_energy_press && blast_two_energy_press)
 	{
 		//grow blast two
-		grow_blast = blast_two;
-		weaken_blast = blast_one;
-		std::cout << "blast two attack grows.\n";
+		grow_blast = &blast_two;
+		weaken_blast = &blast_one;
+		//std::cout << "blast two attack grows.\n";
 	}
 	
 	
+	
 	//grow the blast that has gotten more energy input if only one energy attacker pressed button
-	EnergyAttackSystem::MoveBlast(grow_blast,dt);
+	EnergyAttackSystem::MoveBlastBeamStruggle(*grow_blast,dt);
+	//weaken the blast that has gotten no energy input  from energy attacker
+	EnergyAttackSystem::MoveBlastBackBeamStruggle(*weaken_blast,dt);
 	
-	/*
-	//deactivate energy blasts
-	EnergyAttackSystem::DeactivateInLargeEnergyPool(left_index);
-	EnergyAttackSystem::DeactivateInLargeEnergyPool(current_index);
+	//printf("After move.\n");
 	
-	//add energy projectile back to queue of energy attackers
-	queue_energy_pool_available_array[blast_one.energy_beam_attacker_index] = MAX_ENERGY_BEAMS_PER_ATTACKER - 1;
-	queue_energy_pool_available_array[blast_two.energy_beam_attacker_index] = MAX_ENERGY_BEAMS_PER_ATTACKER - 1;
+	//printf("blast one collision rect: %f, %f, %f, %f: \n",blast_one.collision_rect.x,blast_one.collision_rect.y,
+	//		blast_one.collision_rect.width,blast_one.collision_rect.height);
+			
+	//printf("blast two collision rect: %f, %f, %f, %f: \n",blast_two.collision_rect.x,blast_two.collision_rect.y,
+	//		blast_two.collision_rect.width,blast_two.collision_rect.height); 
 	
-	//allow energy attackers to move again
-	*blast_one.entity_state_ptr = EntityState::NONE;
-	*blast_two.entity_state_ptr = EntityState::NONE;
-	*/
+	//if blast two lost
+	if(blast_two.collision_rect.width <= 0.0f || blast_two.collision_rect.height <= 0.0f)
+	{
+		//deactivate blast two
+		blast_two.active = false;
+		blast_two.in_beam_struggle = false;
+		
+		blast_one.in_beam_struggle = false;
+		
+		//allow blast one energy attacker to move again and have energy again
+		*blast_one.entity_state_ptr = EntityState::NONE;
+		queue_energy_pool_available_array[blast_one.energy_beam_attacker_index] = MAX_ENERGY_BEAMS_PER_ATTACKER - 1;
+		
+		queue_energy_pool_available_array[blast_two.energy_beam_attacker_index] = MAX_ENERGY_BEAMS_PER_ATTACKER - 1;
+	}
+	//else if blast one lost
+	else if(blast_one.collision_rect.width <= 0.0f || blast_one.collision_rect.height <= 0.0f)
+	{
+		//deactivate blast one
+		blast_one.active = false;
+		blast_one.in_beam_struggle = false;
+		
+		blast_two.in_beam_struggle = false;
+		
+		//allow blast two energy attacker to move again and have energy again
+		*blast_two.entity_state_ptr = EntityState::NONE;
+		queue_energy_pool_available_array[blast_two.energy_beam_attacker_index] = MAX_ENERGY_BEAMS_PER_ATTACKER - 1;
+		
+		queue_energy_pool_available_array[blast_one.energy_beam_attacker_index] = MAX_ENERGY_BEAMS_PER_ATTACKER - 1;
+	}
+	
 }
 
 void EnergyAttackSystem::MoveBlast(LargeEnergyBlast& blast, float& dt)
@@ -1043,7 +1079,70 @@ void EnergyAttackSystem::MoveBlast(LargeEnergyBlast& blast, float& dt)
 	}
 }
 
-void EnergyAttackSystem::MoveBlastBack(LargeEnergyBlast& blast, float& dt)
+static const float beam_struggle_speed = 500.0f; //pixels per frame
+
+void EnergyAttackSystem::MoveBlastBeamStruggle(LargeEnergyBlast& blast, float& dt)
+{
+	//if moving left
+	if(blast.face_dir == FaceDirection::WEST )
+	{
+		//skip if blast collision is out of bounds
+		if(blast.collision_rect.x > 0.0f)
+		{
+			//move left
+			blast.collision_rect.x -= beam_struggle_speed*dt;
+			//keep same distance between right end and player
+			blast.collision_rect.width += blast.start_point.x - (blast.collision_rect.x + blast.collision_rect.width);
+			//move line end of beam
+			blast.line_end.x = blast.collision_rect.x;
+			
+		}
+		
+		
+	}
+	//moving right
+	else if(blast.face_dir == FaceDirection::EAST)
+	{
+		//if width is nout out of bounds
+		if(blast.collision_rect.width < 0.5f*world_num_tile_horizontal*30.0f)
+		{
+			//make beam increase in height and width
+			blast.collision_rect.width += beam_struggle_speed*dt;
+			//move line end of beam
+			blast.line_end.x = blast.collision_rect.x + blast.collision_rect.width;
+		}
+		
+	}
+	//if moving up
+	else if(blast.face_dir == FaceDirection::NORTH)
+	{
+		//if blast collision is not out of bounds
+		if(blast.collision_rect.y > 0.0f)
+		{
+			//move up 
+			blast.collision_rect.y += beam_struggle_speed*dt;
+			//keep same distance between bottom end and player
+			blast.collision_rect.height += blast.start_point.y - (blast.collision_rect.y + blast.collision_rect.height - 60);
+			//move line end of beam
+			blast.line_end.y = blast.collision_rect.y;
+		}
+		
+	}
+	//else if moving down
+	else if(blast.face_dir == FaceDirection::SOUTH)
+	{
+		//if height is out out of bounds
+		if(blast.collision_rect.height < 0.5f*world_num_tile_horizontal*30.0f)
+		{
+			blast.collision_rect.height += beam_struggle_speed*dt;
+			//move line end of beam
+			blast.line_end.y = blast.collision_rect.y + blast.collision_rect.height;
+		}
+		
+	}
+}
+
+void EnergyAttackSystem::MoveBlastBackBeamStruggle(LargeEnergyBlast& blast, float& dt)
 {
 	//if moving left
 	if(blast.face_dir == FaceDirection::WEST )
@@ -1052,9 +1151,10 @@ void EnergyAttackSystem::MoveBlastBack(LargeEnergyBlast& blast, float& dt)
 		if(blast.collision_rect.x > 0.0f)
 		{
 			//move right
-			blast.collision_rect.x -= blast.projectile_speed_x*dt;
+			blast.collision_rect.x += beam_struggle_speed*dt;
 			//keep same distance between right end and player
-			blast.collision_rect.width -= blast.start_point.x - (blast.collision_rect.x + blast.collision_rect.width);
+			//blast.collision_rect.width -= blast.start_point.x - (blast.collision_rect.x + blast.collision_rect.width);
+			blast.collision_rect.width -= beam_struggle_speed*dt;
 			//move line end of beam
 			blast.line_end.x = blast.collision_rect.x;
 			
@@ -1069,7 +1169,7 @@ void EnergyAttackSystem::MoveBlastBack(LargeEnergyBlast& blast, float& dt)
 		if(blast.collision_rect.width < 0.5f*world_num_tile_horizontal*30.0f)
 		{
 			//make beam decrease in width
-			blast.collision_rect.width -= blast.projectile_speed_x*dt;
+			blast.collision_rect.width -= beam_struggle_speed*dt;
 			//move line end of beam
 			blast.line_end.x = blast.collision_rect.x + blast.collision_rect.width;
 		}
@@ -1082,7 +1182,7 @@ void EnergyAttackSystem::MoveBlastBack(LargeEnergyBlast& blast, float& dt)
 		if(blast.collision_rect.y > 0.0f)
 		{
 			//move down 
-			blast.collision_rect.y -= blast.projectile_speed_y*dt;
+			blast.collision_rect.y -= beam_struggle_speed*dt;
 			//keep same distance between bottom end and player
 			blast.collision_rect.height -= blast.start_point.y - (blast.collision_rect.y + blast.collision_rect.height - 60);
 			//move line end of beam
@@ -1096,7 +1196,7 @@ void EnergyAttackSystem::MoveBlastBack(LargeEnergyBlast& blast, float& dt)
 		//if height is out out of bounds
 		if(blast.collision_rect.height < 0.5f*world_num_tile_horizontal*30.0f)
 		{
-			blast.collision_rect.height -= blast.projectile_speed_y*dt;
+			blast.collision_rect.height -= beam_struggle_speed*dt;
 			//move line end of beam
 			blast.line_end.y = blast.collision_rect.y + blast.collision_rect.height;
 		}

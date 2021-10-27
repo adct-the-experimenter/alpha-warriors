@@ -114,7 +114,9 @@ void HandleBeamStruggleBetweenTwoBeams(LargeEnergyBlast& blast_one, LargeEnergyB
 
 //function to move blast
 void MoveBlast(LargeEnergyBlast& blast, float& dt);
-void MoveBlastBack(LargeEnergyBlast& blast, float& dt);
+
+void MoveBlastBeamStruggle(LargeEnergyBlast& blast, float& dt);
+void MoveBlastBackBeamStruggle(LargeEnergyBlast& blast, float& dt);
 
 };
  
