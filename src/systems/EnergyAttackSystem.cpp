@@ -924,6 +924,28 @@ void EnergyAttackSystem::DeactivateInLargeEnergyPool(size_t& iterator)
 void EnergyAttackSystem::HandleBeamStruggleBetweenTwoBeams(LargeEnergyBlast& blast_one, LargeEnergyBlast& blast_two, float& dt)
 {
 	
+	//if blasts not in opposite directions, but perpendicular
+	if(!(blast_one.face_dir == FaceDirection::EAST && blast_two.face_dir == FaceDirection::WEST) &&
+	   !(blast_two.face_dir == FaceDirection::EAST && blast_one.face_dir == FaceDirection::WEST) &&
+	   !(blast_one.face_dir == FaceDirection::SOUTH && blast_two.face_dir == FaceDirection::NORTH) &&
+	   !(blast_one.face_dir == FaceDirection::NORTH && blast_two.face_dir == FaceDirection::SOUTH) )
+	{
+		//cancel both blasts
+		blast_one.active = false;
+		blast_two.active = false;
+		
+		blast_one.in_beam_struggle = false;
+		blast_two.in_beam_struggle = false;
+		
+		queue_energy_pool_available_array[blast_one.energy_beam_attacker_index] = MAX_ENERGY_BEAMS_PER_ATTACKER - 1;
+		queue_energy_pool_available_array[blast_two.energy_beam_attacker_index] = MAX_ENERGY_BEAMS_PER_ATTACKER - 1;
+		
+		*blast_one.entity_state_ptr = EntityState::NONE;
+		*blast_two.entity_state_ptr = EntityState::NONE;
+		
+		return;
+	}
+	
 	
 	//put both blasts in beam struggle state
 	blast_one.in_beam_struggle = true;
@@ -1120,9 +1142,9 @@ void EnergyAttackSystem::MoveBlastBeamStruggle(LargeEnergyBlast& blast, float& d
 		if(blast.collision_rect.y > 0.0f)
 		{
 			//move up 
-			blast.collision_rect.y += beam_struggle_speed*dt;
+			blast.collision_rect.y -= beam_struggle_speed*dt;
 			//keep same distance between bottom end and player
-			blast.collision_rect.height += blast.start_point.y - (blast.collision_rect.y + blast.collision_rect.height - 60);
+			blast.collision_rect.height += beam_struggle_speed*dt;
 			//move line end of beam
 			blast.line_end.y = blast.collision_rect.y;
 		}
@@ -1165,7 +1187,7 @@ void EnergyAttackSystem::MoveBlastBackBeamStruggle(LargeEnergyBlast& blast, floa
 	//moving right
 	else if(blast.face_dir == FaceDirection::EAST)
 	{
-		//if width is nout out of bounds
+		//if width is not out out of bounds
 		if(blast.collision_rect.width < 0.5f*world_num_tile_horizontal*30.0f)
 		{
 			//make beam decrease in width
@@ -1182,9 +1204,9 @@ void EnergyAttackSystem::MoveBlastBackBeamStruggle(LargeEnergyBlast& blast, floa
 		if(blast.collision_rect.y > 0.0f)
 		{
 			//move down 
-			blast.collision_rect.y -= beam_struggle_speed*dt;
+			blast.collision_rect.y += beam_struggle_speed*dt;
 			//keep same distance between bottom end and player
-			blast.collision_rect.height -= blast.start_point.y - (blast.collision_rect.y + blast.collision_rect.height - 60);
+			blast.collision_rect.height -= beam_struggle_speed*dt;
 			//move line end of beam
 			blast.line_end.y = blast.collision_rect.y;
 		}
