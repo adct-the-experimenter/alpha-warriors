@@ -346,7 +346,7 @@ void EnergyAttackSystem::HandleEnergyToEnergyCollisions(float& dt)
 	
 	//std::cout << "Check is over!\n";		
 			
-	//check collisions between large energy projectiles
+	//check collisions between large energy blasts
 	end_check = false;
 	left_index = 0;
 	right_index = MAX_NUM_ATTACKERS - 1;
@@ -394,7 +394,36 @@ void EnergyAttackSystem::HandleEnergyToEnergyCollisions(float& dt)
 	}
 	
 	//blast to projectile collisions
-	
+
+	//for all large energy blasts
+	for(size_t large_blast_index = 0; large_blast_index < large_energy_pool_vector.size(); large_blast_index++)
+	{
+		//skip if blast is not active
+		if(!large_energy_pool_vector[large_blast_index].active){continue;}
+		
+		//check against all small energy blasts
+		for(size_t i = 0; i < energy_pool_vector.size(); i++)
+		{
+			//skip if small energy blast is not active
+			if(!energy_pool_vector[i].active)
+			{
+				continue;
+			}
+			
+			//if there is a collision
+			if(CheckCollisionRectangles(energy_pool_vector[i].collision_rect,
+										large_energy_pool_vector[large_blast_index].collision_rect))
+			{
+				//eliminate small energy blast
+				//add beam back to energy attacker queue
+				int8_t& attacker_index = energy_pool_vector[i].energy_beam_attacker_index;
+				queue_energy_pool_available_array[attacker_index] += 1;
+					
+				//remove beam from vector
+				EnergyAttackSystem::DeactivateInSmallEnergyPool(i);
+			}
+		}
+	}
 }
 
 void EnergyAttackSystem::HandleCollisionWithWorldTiles()
