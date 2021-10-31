@@ -544,6 +544,7 @@ void CharacterSelector::DetermineConfirmationActions()
 			AnimatedActorType type = AnimatedActorType::PLAYER;
 			Animation anim_component = {};
 			anim_component.anim_actor_type = type;
+			if(i == 1){anim_component.face_dir = FaceDirection::WEST;} //make player 2 face west
 			
 			gCoordinator.AddComponent(
 						*player_entities_vec.at(i),
