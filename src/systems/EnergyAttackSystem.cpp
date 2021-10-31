@@ -834,6 +834,52 @@ void EnergyAttackSystem::HandleCollisionWithGeneralActors()
 	
 }
 
+void EnergyAttackSystem::RenderEnergyBeams_VersusMode(CustomCamera* camera_ptr)
+{
+	if(camera_ptr)
+	{			
+		
+		Rectangle* camera_rect_ptr = camera_ptr->GetCameraRectPointer();
+		
+		//for small energy beams
+		for( auto& beam : energy_pool_vector)
+		{
+			if(!beam.active){continue;}
+			
+			if(beam.collision_rect.x > camera_rect_ptr->x && beam.collision_rect.y > camera_rect_ptr->y
+				&& beam.collision_rect.x < camera_rect_ptr->x + camera_rect_ptr->width
+				&& beam.collision_rect.y < camera_rect_ptr->y + camera_rect_ptr->height)
+			{
+				DrawRectangle(beam.collision_rect.x - camera_rect_ptr->x, 
+					beam.collision_rect.y - camera_rect_ptr->y, 
+						beam.collision_rect.width, beam.collision_rect.height, 
+						RED);
+			}
+						
+			
+		}
+						
+		
+		for(auto& blast: large_energy_pool_vector)
+		{
+			if(!blast.active){continue;}
+			
+			//energy blast is big so no bounds check.
+			DrawRectangle(blast.collision_rect.x - camera_rect_ptr->x, 
+					blast.collision_rect.y - camera_rect_ptr->y, 
+					blast.collision_rect.width, blast.collision_rect.height, 
+					RED);	
+			
+			//draw the line ending of blast
+			DrawRectangle(blast.line_end.x - camera_rect_ptr->x, 
+					blast.line_end.y - camera_rect_ptr->y, 
+					blast.line_end.width, blast.line_end.height, 
+					WHITE);
+			
+		}
+					
+	}
+}
 
 void EnergyAttackSystem::RenderEnergyBeams_FreeplayMode(CameraManager& camera_manager_ptr)
 {

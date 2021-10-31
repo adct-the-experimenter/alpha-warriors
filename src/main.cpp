@@ -328,6 +328,23 @@ void logic()
 			}
 			else
 			{
+				//if versus mode was selected
+				if(gGameModeSelector.GetModeSelected() == 0)
+				{
+					//automatically set 2 players to enter
+					gNumPlayers = 2;
+					
+					
+					
+					game_mode_selected = 0;
+					
+					gGameModeSelector.Reset();
+					gNumPlayerSetter.Reset();
+					
+					//move to next state
+					moveNextState = true;
+				}
+				
 				gNumPlayerSetter.logic();
 				
 				if(gNumPlayerSetter.MoveToPreviousStateBool())
@@ -411,8 +428,8 @@ void logic()
 						gStageSelector.Init(gStageManager.GetNumberOfStagesInitialized());
 												
 						//initialize render system
-						renderSystem->Init(&main_camera); 
-						
+						renderSystem->Init(&main_camera);
+												
 						break;
 					}
 					//metroidvania mode
@@ -463,6 +480,7 @@ void logic()
 				
 				//initialize fight game state
 				
+				
 				if(gStageManager.LoadLevel( gStageSelector.StageSelected() ) )
 				{
 					m_game_state = GameState::TUTORIAL;
@@ -470,6 +488,7 @@ void logic()
 					gStageManager.PlacePlayersInStage(gNumPlayers);
 					attackPowerMechanicSystem->Init(gNumPlayers);
 					playerDeathSystem->Init(gNumPlayers);
+					energyAttackSystem->Init();
 					
 					gStageSelector.Reset();
 				}
@@ -502,19 +521,24 @@ void logic()
 		{
 			//handle activating powers based on input
 			attackPowerMechanicSystem->HandlePowerActivation(dt);
+			energyAttackSystem->HandleEnergyBeamActivation();
 			
 			//move players and other entities
 			physicsSystem->Update_VersusMode(dt);
 			
 			//move attack boxes with players
 			attackPowerMechanicSystem->MoveAttackBoxesWithPlayer(dt);
+			energyAttackSystem->HandleEnergyBeamMovement(dt);
 			
 			//check collisions between players
 			attackPowerMechanicSystem->CollisionDetectionBetweenPlayers();
+			energyAttackSystem->HandleCollisionWithGeneralActors();
+			
+			//check collisions between energy attacks
+			energyAttackSystem->HandleEnergyToEnergyCollisions(dt);
 			
 			//react to collisions
-			attackPowerMechanicSystem->ReactToCollisions(dt);
-			
+			reactionSystem->HandleReactionToCollisions(dt);
 			
 			//set up frame for render
 			animationSystem->Update(dt);
@@ -707,6 +731,8 @@ void render()
 			}
 			
 			DrawTextureRec(main_stage.texture, *main_camera.GetCameraRectPointer(), Vector2{0,0}, WHITE);
+			
+			energyAttackSystem->RenderEnergyBeams_VersusMode(&main_camera);
 						
 		    //render any entity that has render component
 			renderSystem->Update();
