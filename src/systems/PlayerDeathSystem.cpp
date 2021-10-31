@@ -35,6 +35,14 @@ void PlayerDeathSystem::Update()
 		{
 			auto& render_comp = gCoordinator.GetComponent<RenderModelComponent>(entity);
 			auto& player = gCoordinator.GetComponent<Player>(entity);
+			auto& gen_entity_state = gCoordinator.GetComponent<GeneralEnityState>(entity);
+			
+			
+			if(gen_entity_state.health <= 0)
+			{
+				player.alive = false;
+				gen_entity_state.actor_state = EntityState::DEAD;
+			}
 			
 			if(!player.alive && render_comp.render)
 			{

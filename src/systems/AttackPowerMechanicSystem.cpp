@@ -80,6 +80,9 @@ void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 		auto& collisionBox = gCoordinator.GetComponent<CollisionBox>(entity);
 		auto& gen_entity_state = gCoordinator.GetComponent<GeneralEnityState>(entity);
 		
+		//skip if not alive
+		if(gen_entity_state.actor_state == EntityState::DEAD){continue;}
+		
 		//if player pressed attack button and isn't in hurting state and alive.
 		if(player.regularAttackButtonPressed && player.alive && !gen_entity_state.taking_damage && player.state != PlayerState::HURTING)
 		{

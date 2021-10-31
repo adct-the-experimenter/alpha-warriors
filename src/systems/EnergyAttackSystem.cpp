@@ -57,6 +57,9 @@ void EnergyAttackSystem::HandleEnergyBeamActivation()
 		auto& collisionBox = gCoordinator.GetComponent<CollisionBox>(entity);
 		auto& gen_entity_state = gCoordinator.GetComponent<GeneralEnityState>(entity);
 		
+		//skip if not alive
+		if(gen_entity_state.actor_state == EntityState::DEAD){continue;}
+		
 		//if energy beams available from queue and energy beam requested
 		if(queue_energy_pool_available_array[energy_attacker.queue_id] != -1 
 			)

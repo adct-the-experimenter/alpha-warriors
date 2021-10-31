@@ -20,6 +20,8 @@ void InputReactorSystem::Update(ControllerInput& input)
 		auto& rigidBody = gCoordinator.GetComponent<RigidBody2D>(entity);
 		auto& player = gCoordinator.GetComponent<Player>(entity);
 		
+		//skip player input if not alive
+		if(!player.alive){continue;}
 		
 		switch(inputReactor.actor_type)
 		{

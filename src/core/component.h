@@ -71,7 +71,7 @@ struct CollisionBox
 };
 
 enum class EntityActorType : std::uint8_t {OBJECT = 0,PLAYER,ENEMY};
-enum class EntityState : std::uint8_t {NONE=0,ATTACKING_NO_MOVE,HURTING_KNOCKBACK};
+enum class EntityState : std::uint8_t {NONE=0,ATTACKING_NO_MOVE,HURTING_KNOCKBACK,DEAD};
 
 struct GeneralEnityState
 {

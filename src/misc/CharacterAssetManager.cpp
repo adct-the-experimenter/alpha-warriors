@@ -460,7 +460,7 @@ bool CharacterAssetManager::LoadCharacterAssets(RequestedCharacters& req_chars, 
 		player.attack_box_offset = stat.attack_box_offset;
 		
 		player.health_factor = stat.health_factor;
-		gen_entity_comp.health *= gen_entity_comp.health;
+		gen_entity_comp.health = std::lround(gen_entity_comp.health * stat.health_factor);
 		
 		player.speed_factor = stat.speed_factor;
 		player.jump_factor = stat.jump_factor;
