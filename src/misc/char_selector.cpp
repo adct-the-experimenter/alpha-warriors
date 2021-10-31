@@ -258,12 +258,10 @@ void CharacterSelector::handle_controller_input(ControllerInput& input)
 		{
 			exit_mode_frame_count[i] = 0;
 			
-			//if current slot is final slot
-			if(fighter_boxes[i].current_slot == 1)
-			{
-				fighter_boxes[i].current_slot--;
-				char_confirmations[i] = false;
-			}
+			//reset fight box
+			fighter_boxes[i].current_slot = 0;
+			char_confirmations[i] = false;
+			fighter_boxes[i].confirm_char_choice = false;
 			
 		}
 		//if b button held down
@@ -272,7 +270,7 @@ void CharacterSelector::handle_controller_input(ControllerInput& input)
 			
 			exit_mode_frame_count[i]++;
 			
-			//asusming 60 FPS, about 3 seconds
+			//assuming 60 FPS, about 3 seconds
 			if(exit_mode_frame_count[i] >= 130)
 			{
 				move_prev_state = true;
