@@ -133,8 +133,7 @@ void InputReactorSystem::Update(ControllerInput& input)
 					}
 					
 					//if teleport mode activation requested with button combination
-					if(input.gamepads_vec[i].button_held_array[SDL_CONTROLLER_BUTTON_A]
-						&& input.gamepads_vec[i].button_held_array[SDL_CONTROLLER_BUTTON_Y])
+					if(input.gamepads_vec[i].button_held_array[SDL_CONTROLLER_BUTTON_B])
 					{
 						player.teleportButton = true;
 						player.time_energy_button_held = 0.0f;

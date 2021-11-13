@@ -424,7 +424,7 @@ static void HandleWorldTileCollision_Idle_Ground(size_t& tile_index,float& obj_x
 					{
 						obj_vy = 0;
 						obj_y = world_ptr->tiles_vector[tile_index].y + 30;
-						std::cout << "\nplayer below platform. Push down.\n";
+						//std::cout << "\nplayer below platform. Push down.\n";
 						//do nothing, have player pass through if player avatar feet are below platform
 						//have player just fall and pushed back against side of platform if in air.
 					}
@@ -690,6 +690,8 @@ void PhysicsSystem::Update_VersusMode(float& dt)
 	
 }
 
+static float speed_limit = 1000.0f;
+
 void PhysicsSystem::Update_MetroidVaniaMode(float& dt)
 {
 	//handle physics i.e. push back from tile collision and gravity
@@ -743,6 +745,10 @@ void PhysicsSystem::Update_MetroidVaniaMode(float& dt)
 				}
 				
 				//limit top speed
+				if(rigidBody.velocity.y < -1.0f*speed_limit){rigidBody.velocity.y = -1.0f*speed_limit;}
+				else if(rigidBody.velocity.y > speed_limit){rigidBody.velocity.y = speed_limit;}
+				if(rigidBody.velocity.x < -1.0f*speed_limit){rigidBody.velocity.x = -1.0f*speed_limit;}
+				else if(rigidBody.velocity.x > speed_limit){rigidBody.velocity.x = speed_limit;}
 				
 				//move transform component by velocity of rigid body multiplied by time
 				//std::cout << "In physics system, player rigid body velocity: " << rigidBody.velocity.x << std::endl;
