@@ -451,6 +451,8 @@ void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 		{			
 			player.inTeleportMode = true;
 			
+			rigidBody.in_flying_state = true;
+			
 			//make player fast
 			rigidBody.velocity.x = speed_boost*rigidBody.velocity.x;
 			rigidBody.velocity.y = speed_boost*rigidBody.velocity.y;

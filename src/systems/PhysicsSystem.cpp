@@ -690,7 +690,7 @@ void PhysicsSystem::Update_VersusMode(float& dt)
 	
 }
 
-static float speed_limit = 1000.0f;
+static float speed_limit = 500.0f;
 
 void PhysicsSystem::Update_MetroidVaniaMode(float& dt)
 {

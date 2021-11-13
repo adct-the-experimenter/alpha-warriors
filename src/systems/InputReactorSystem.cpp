@@ -76,7 +76,7 @@ void InputReactorSystem::Update(ControllerInput& input)
 					
 					
 					//if jump button pressed
-					if( input.gamepads_vec[i].button_down == SDL_CONTROLLER_BUTTON_B)
+					if( input.gamepads_vec[i].button_down == SDL_CONTROLLER_BUTTON_B && !player.inTeleportMode)
 					{
 						rigidBody.jump_speed = -player.jump_factor;
 					}
@@ -123,7 +123,7 @@ void InputReactorSystem::Update(ControllerInput& input)
 					}
 					//if energy button is held down
 					if(input.gamepads_vec[i].button_held_array[SDL_CONTROLLER_BUTTON_Y]
-						&& !input.gamepads_vec[i].button_held_array[SDL_CONTROLLER_BUTTON_A])
+						&& !player.inTeleportMode)
 					{
 						player.energyButtonHeld = true;
 					}
@@ -133,7 +133,8 @@ void InputReactorSystem::Update(ControllerInput& input)
 					}
 					
 					//if teleport mode activation requested with button combination
-					if(input.gamepads_vec[i].button_held_array[SDL_CONTROLLER_BUTTON_B])
+					if(input.gamepads_vec[i].button_held_array[SDL_CONTROLLER_BUTTON_B] &&
+					   input.gamepads_vec[i].button_held_array[SDL_CONTROLLER_BUTTON_A])
 					{
 						player.teleportButton = true;
 						player.time_energy_button_held = 0.0f;
