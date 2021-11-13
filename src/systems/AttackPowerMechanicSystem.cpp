@@ -460,7 +460,7 @@ void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 			
 			player.teleport_cooldown_timer_val += dt;
 			
-			if(player.teleport_cooldown_timer_val >= 1.0f)
+			if(player.teleport_cooldown_timer_val >= 0.5f)
 			{
 				rigidBody.velocity.x = (1/speed_boost)*rigidBody.velocity.x;
 				rigidBody.velocity.y = (1/speed_boost)*rigidBody.velocity.y;
@@ -469,7 +469,7 @@ void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 			
 				player.state = PlayerState::IDLE;
 				
-				if(player.teleport_cooldown_timer_val >= 2.0f){player.teleport_cooldown_timer_val = 0.0f;}
+				if(player.teleport_cooldown_timer_val >= 1.0f){player.teleport_cooldown_timer_val = 0.0f;}
 			}
 			
 			
