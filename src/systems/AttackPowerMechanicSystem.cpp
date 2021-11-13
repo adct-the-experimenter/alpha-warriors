@@ -67,6 +67,8 @@ void AttackPowerMechanicSystem::Init(std::uint8_t num_players)
 
 static float speed_boost = 20.0f;
 
+static float teleport_speed_boost = 5.0f;
+
 void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 {
 	
@@ -451,11 +453,11 @@ void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 		{			
 			player.inTeleportMode = true;
 			
-			rigidBody.in_flying_state = true;
+			//rigidBody.in_flying_state = true;
 			
 			//make player fast
-			rigidBody.velocity.x = speed_boost*rigidBody.velocity.x;
-			rigidBody.velocity.y = speed_boost*rigidBody.velocity.y;
+			rigidBody.velocity.x = teleport_speed_boost*rigidBody.velocity.x;
+			if(rigidBody.in_flying_state){rigidBody.velocity.y = teleport_speed_boost*rigidBody.velocity.y;}
 			
 			//make player invisible
 			animation.attackMode = 1;
@@ -464,8 +466,8 @@ void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 			
 			if(player.teleport_cooldown_timer_val >= 0.5f)
 			{
-				rigidBody.velocity.x = (1/speed_boost)*rigidBody.velocity.x;
-				rigidBody.velocity.y = (1/speed_boost)*rigidBody.velocity.y;
+				rigidBody.velocity.x = (1/teleport_speed_boost)*rigidBody.velocity.x;
+				rigidBody.velocity.y = (1/teleport_speed_boost)*rigidBody.velocity.y;
 				//reset animation for attack mode
 				animation.attackMode = -1;
 			
@@ -488,8 +490,8 @@ void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 					player.inTeleportMode = false;
 				}
 				
-				rigidBody.velocity.x = (1/speed_boost)*rigidBody.velocity.x;
-				rigidBody.velocity.y = (1/speed_boost)*rigidBody.velocity.y;
+				rigidBody.velocity.x = (1/teleport_speed_boost)*rigidBody.velocity.x;
+				rigidBody.velocity.y = (1/teleport_speed_boost)*rigidBody.velocity.y;
 				//reset animation for attack mode
 				animation.attackMode = -1;
 			
