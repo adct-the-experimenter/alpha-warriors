@@ -477,8 +477,15 @@ void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 		else if(!player.teleportButton && !gen_entity_state.taking_damage)
 		{
 			player.inTeleportMode = false;
+			
 			if(player.teleport_cooldown_timer_val > 0.0f)
 			{
+				if(player.teleport_cooldown_timer_val >= 1.0f)
+				{
+					player.teleport_cooldown_timer_val = 0.0f;
+					player.inTeleportMode = false;
+				}
+				
 				rigidBody.velocity.x = (1/speed_boost)*rigidBody.velocity.x;
 				rigidBody.velocity.y = (1/speed_boost)*rigidBody.velocity.y;
 				//reset animation for attack mode
@@ -486,6 +493,7 @@ void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 			
 				player.state = PlayerState::IDLE;
 			}
+			
 			player.teleport_cooldown_timer_val = 0.0f;
 		}
 		else

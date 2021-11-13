@@ -92,22 +92,26 @@ void InputReactorSystem::Update(ControllerInput& input)
 					}
 					
 					//if special power button pressed
-					if(input.gamepads_vec[i].button_up_released == SDL_CONTROLLER_BUTTON_RIGHTSHOULDER)
+					if(input.gamepads_vec[i].button_up_released == SDL_CONTROLLER_BUTTON_RIGHTSHOULDER
+						&& !player.inTeleportMode)
 					{
 						player.powerButtonPressed = true;
 					}
 					//if regular attack button pressed
-					if(input.gamepads_vec[i].button_up_released == SDL_CONTROLLER_BUTTON_A)
+					if(input.gamepads_vec[i].button_up_released == SDL_CONTROLLER_BUTTON_A
+						&& !player.inTeleportMode)
 					{
 						player.regularAttackButtonPressed = true;
 					}
 					//if craft button pressed, any of the trigger buttons
-					if(input.gamepads_vec[i].button_up_released == SDL_CONTROLLER_BUTTON_X)
+					if(input.gamepads_vec[i].button_up_released == SDL_CONTROLLER_BUTTON_X
+						&& !player.inTeleportMode)
 					{
 						player.craftButtonPressed = true;
 					}
 					//if energy beam button pressed 
-					if(input.gamepads_vec[i].button_up_released == SDL_CONTROLLER_BUTTON_Y)
+					if(input.gamepads_vec[i].button_up_released == SDL_CONTROLLER_BUTTON_Y
+						&& !player.inTeleportMode)
 					{
 						player.energyButtonPressed = true;
 						player.time_energy_button_held = 0.0f;
