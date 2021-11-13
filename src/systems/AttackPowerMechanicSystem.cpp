@@ -446,10 +446,53 @@ void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 			}
 		}
 		
-		//cooldown for small energy beam
-		
-		
-		
+		//activation and cooldown for teleport button if activated
+		if(player.teleportButton && !gen_entity_state.taking_damage )
+		{			
+			player.inTeleportMode = true;
+			
+			//make player fast
+			rigidBody.velocity.x = speed_boost*rigidBody.velocity.x;
+			rigidBody.velocity.y = speed_boost*rigidBody.velocity.y;
+			
+			//make player invisible
+			animation.attackMode = 1;
+			
+			player.teleport_cooldown_timer_val += dt;
+			
+			if(player.teleport_cooldown_timer_val >= 1.0f)
+			{
+				rigidBody.velocity.x = (1/speed_boost)*rigidBody.velocity.x;
+				rigidBody.velocity.y = (1/speed_boost)*rigidBody.velocity.y;
+				//reset animation for attack mode
+				animation.attackMode = -1;
+			
+				player.state = PlayerState::IDLE;
+				
+				if(player.teleport_cooldown_timer_val >= 2.0f){player.teleport_cooldown_timer_val = 0.0f;}
+			}
+			
+			
+		}
+		else if(!player.teleportButton && !gen_entity_state.taking_damage)
+		{
+			player.inTeleportMode = false;
+			if(player.teleport_cooldown_timer_val > 0.0f)
+			{
+				rigidBody.velocity.x = (1/speed_boost)*rigidBody.velocity.x;
+				rigidBody.velocity.y = (1/speed_boost)*rigidBody.velocity.y;
+				//reset animation for attack mode
+				animation.attackMode = -1;
+			
+				player.state = PlayerState::IDLE;
+			}
+			player.teleport_cooldown_timer_val = 0.0f;
+		}
+		else
+		{
+			player.inTeleportMode = false;
+			player.teleport_cooldown_timer_val = 0.0f;
+		}
 		
 	}
 	

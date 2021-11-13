@@ -192,6 +192,12 @@ struct Player
 	//indicate if player pressed the energy beam button
 	bool energyButtonPressed;
 	
+	//indicate if player pressed teleport combination button
+	bool teleportButton;
+	//indicate if player in teleport
+	bool inTeleportMode;
+	float teleport_cooldown_timer_val;
+	
 	bool energyButtonHeld;
 	float time_energy_button_held;
 	

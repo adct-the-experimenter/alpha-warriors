@@ -742,6 +742,7 @@ void PhysicsSystem::Update_MetroidVaniaMode(float& dt)
 					rigidBody.velocity.y += (gravity.force.y * dt);
 				}
 				
+				//limit top speed
 				
 				//move transform component by velocity of rigid body multiplied by time
 				//std::cout << "In physics system, player rigid body velocity: " << rigidBody.velocity.x << std::endl;

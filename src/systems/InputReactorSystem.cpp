@@ -118,13 +118,29 @@ void InputReactorSystem::Update(ControllerInput& input)
 						player.energyButtonPressed = false;
 					}
 					//if energy button is held down
-					if(input.gamepads_vec[i].button_down == SDL_CONTROLLER_BUTTON_Y)
+					if(input.gamepads_vec[i].button_held_array[SDL_CONTROLLER_BUTTON_Y]
+						&& !input.gamepads_vec[i].button_held_array[SDL_CONTROLLER_BUTTON_A])
 					{
 						player.energyButtonHeld = true;
 					}
 					else
 					{
 						player.energyButtonHeld = false;
+					}
+					
+					//if teleport mode activation requested with button combination
+					if(input.gamepads_vec[i].button_held_array[SDL_CONTROLLER_BUTTON_A]
+						&& input.gamepads_vec[i].button_held_array[SDL_CONTROLLER_BUTTON_Y])
+					{
+						player.teleportButton = true;
+						player.time_energy_button_held = 0.0f;
+						player.energyButtonHeld = false;
+						player.energyButtonPressed = false;
+						player.regularAttackButtonPressed = false;
+					}
+					else
+					{
+						player.teleportButton = false;
 					}
 				}				
 				

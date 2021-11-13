@@ -54,6 +54,7 @@ public:
 		int16_t left_y_dir_digital;
 		
 		//includes buttons and dpad
+		
 		//which button is currently pressed down
 		SDL_GameControllerButton button_down;
 		
@@ -68,6 +69,9 @@ public:
 		
 		//0 is null. 1 is pressed, 2 is released.
 		int button_state = 0;
+		
+		//indicates which buttons are being held
+		bool button_held_array[16];
 	};
 	
 	std::vector <GamepadInfo> gamepads_vec;
@@ -83,12 +87,18 @@ public:
 		for(size_t i = 0; i < gamepads_vec.size(); i++)
 		{
 			gamepads_vec[i].prev_button_down = gamepads_vec[i].button_down;
+			
 			gamepads_vec[i].prev_button_up_released = gamepads_vec[i].button_up_released;
+			
+			
+			gamepads_vec[i].button_held_array[gamepads_vec[i].button_down] = true;
+			gamepads_vec[i].button_held_array[gamepads_vec[i].button_up_released] = false;
 			
 			//if button down is the same button as button released, reset button down.
 			if(gamepads_vec[i].button_down == gamepads_vec[i].button_up_released)
 			{
-				gamepads_vec[i].button_down = SDL_CONTROLLER_BUTTON_INVALID; 
+				gamepads_vec[i].button_down = SDL_CONTROLLER_BUTTON_INVALID;
+				gamepads_vec[i].button_held_array[gamepads_vec[i].button_down] = false;
 			}
 			
 			gamepads_vec[i].button_up_released =  SDL_CONTROLLER_BUTTON_INVALID;
