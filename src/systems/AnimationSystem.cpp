@@ -142,35 +142,29 @@ void AnimationSystem::Update(float& dt)
 					//if player is hurt
 					if(anim_comp.hurt)
 					{
-						if(west)
+						if(anim_comp.face_dir == FaceDirection::WEST)
 						{
-							anim_comp.face_dir = FaceDirection::WEST;
-							
 							//face left
 							frame_rect_ptr = &character_frame_animations[render_comp.char_texture_index].left_hurt_frames.frames[anim_comp.frame_count];
 						}
-						else if(east)
+						else if(anim_comp.face_dir == FaceDirection::EAST)
 						{
-							anim_comp.face_dir = FaceDirection::EAST;
 							//face right hurt
 							frame_rect_ptr = &character_frame_animations[render_comp.char_texture_index].right_hurt_frames.frames[anim_comp.frame_count];
 						}
-						else if(south && !west && !east)
-						{
-							anim_comp.face_dir = FaceDirection::SOUTH;
-							
+						else if(anim_comp.face_dir == FaceDirection::SOUTH)
+						{							
 							//need to add down hurt frames, for now just use right hurt frame
 							frame_rect_ptr = &character_frame_animations[render_comp.char_texture_index].right_hurt_frames.frames[anim_comp.frame_count];
 							anim_comp.frame_count = 0;
 						}
-						else if(north && !west && !east)
+						else if(anim_comp.face_dir == FaceDirection::NORTH)
 						{
-							anim_comp.face_dir = FaceDirection::NORTH;
-							
 							//need to add up hurt frames, for now just use left hurt frames
 							frame_rect_ptr = &character_frame_animations[render_comp.char_texture_index].left_hurt_frames.frames[anim_comp.frame_count];
 							anim_comp.frame_count = 0;
 						}
+						
 						if(no_move)
 						{
 							if(anim_comp.face_dir == FaceDirection::EAST || anim_comp.face_dir == FaceDirection::SOUTH)

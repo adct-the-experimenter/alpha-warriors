@@ -1093,6 +1093,8 @@ void InitRaylibSystem()
     
     // Initialize audio device
     InitAudioDevice();      
+    
+    SetExitKey(0);
 }
 
 void CloseRaylibSystem()
