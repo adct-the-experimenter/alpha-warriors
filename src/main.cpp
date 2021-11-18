@@ -523,9 +523,6 @@ void logic()
 			attackPowerMechanicSystem->HandlePowerActivation(dt);
 			energyAttackSystem->HandleEnergyBeamActivation();
 			
-			//move players and other entities
-			physicsSystem->Update_VersusMode(dt);
-			
 			//move attack boxes with players
 			attackPowerMechanicSystem->MoveAttackBoxesWithPlayer(dt);
 			energyAttackSystem->HandleEnergyBeamMovement(dt);
@@ -542,6 +539,9 @@ void logic()
 			
 			//set up frame for render
 			animationSystem->Update(dt);
+			
+			//move players and other entities
+			physicsSystem->Update_VersusMode(dt);
 			
 			//check for dead players, set bool to stop rendering them
 			playerDeathSystem->Update();
