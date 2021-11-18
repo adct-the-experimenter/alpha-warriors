@@ -31,6 +31,9 @@ void EnergyAttackSystem::Init()
 		
 	}
 	
+	//if energy pool is already already initialized, skip adding elements to energy pool
+	if(energy_pool_vector.size() > 0){return;}
+	
 	energy_pool_vector.reserve(MAX_ENERGY_BEAMS_PER_ATTACKER*MAX_NUM_ATTACKERS + 1);
 	
 	for(size_t i = 0; i < MAX_ENERGY_BEAMS_PER_ATTACKER*MAX_NUM_ATTACKERS; i++)
