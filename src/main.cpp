@@ -564,6 +564,9 @@ void logic()
 				show_restart_game_message = false;
 				winning_player = -1;
 				playerDeathSystem->Reset();
+				
+				//deactivate all energy attacks
+				energyAttackSystem->DeactivateAllEnergyAttacks();
 			}
 			
 			
@@ -643,6 +646,9 @@ void logic()
 					gCoordinator.RemoveComponent<EnergyAttacker>(entity_it);
 					gCoordinator.RemoveComponent<SoundComponent>(entity_it);
 				}
+				
+				//deactivate all energy attacks
+				energyAttackSystem->DeactivateAllEnergyAttacks();
 				
 				//free loaded character media
 				gCharAssetManager.FreeCurrentlyLoadedCharacterAssets();

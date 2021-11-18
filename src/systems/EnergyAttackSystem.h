@@ -86,6 +86,9 @@ void HandleCollisionWithGeneralActors();
 void RenderEnergyBeams_VersusMode(CustomCamera* camera_ptr);
 void RenderEnergyBeams_FreeplayMode(CameraManager& camera_manager_ptr);
 
+//function to cleanup all beams
+void DeactivateAllEnergyAttacks();
+
 private:
 
 //queue of energy beams available in pool

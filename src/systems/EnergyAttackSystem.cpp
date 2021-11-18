@@ -1304,3 +1304,20 @@ void EnergyAttackSystem::MoveBlastBackBeamStruggle(LargeEnergyBlast& blast, floa
 		
 	}
 }
+
+
+void EnergyAttackSystem::DeactivateAllEnergyAttacks()
+{
+	//for small energy beams
+	for( auto& beam : energy_pool_vector)
+	{
+		beam.active = false;
+	}
+	
+	//for large energy blasts
+	for( auto& blast : large_energy_pool_vector)
+	{
+		blast.active = false;
+		
+	}
+}
