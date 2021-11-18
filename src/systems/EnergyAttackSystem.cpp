@@ -793,7 +793,6 @@ void EnergyAttackSystem::HandleCollisionWithGeneralActors()
 			iterator++;
 		}
 		
-		iterator = 0;
 		//for large blasts
 		//check if there is a collision
 		for( auto& blast : large_energy_pool_vector)
@@ -824,14 +823,14 @@ void EnergyAttackSystem::HandleCollisionWithGeneralActors()
 					queue_energy_pool_available_array[blast.energy_beam_attacker_index] = MAX_ENERGY_BEAMS_PER_ATTACKER - 1;
 						
 					//remove beam from vector
-					EnergyAttackSystem::DeactivateInLargeEnergyPool(iterator);
+					blast.active = false;
+					blast.in_beam_struggle = false;
 					
 					
 				}
 				
 			}
 			
-			iterator++;
 		}
 	}
 	
@@ -999,6 +998,8 @@ void EnergyAttackSystem::DeactivateInLargeEnergyPool(size_t& iterator)
 	large_energy_pool_vector[iterator].in_beam_struggle = false;
 }
 
+static const float beam_struggle_lose_dimension = 20.0f;
+
 void EnergyAttackSystem::HandleBeamStruggleBetweenTwoBeams(LargeEnergyBlast& blast_one, LargeEnergyBlast& blast_two, float& dt)
 {
 	
@@ -1086,12 +1087,12 @@ void EnergyAttackSystem::HandleBeamStruggleBetweenTwoBeams(LargeEnergyBlast& bla
 	//		blast_two.collision_rect.width,blast_two.collision_rect.height); 
 	
 	//if blast two lost
-	if(blast_two.collision_rect.width <= 0.0f || blast_two.collision_rect.height <= 0.0f)
+	if(blast_two.collision_rect.width <= beam_struggle_lose_dimension || blast_two.collision_rect.height <= beam_struggle_lose_dimension)
 	{
 		//deactivate blast two
 		blast_two.active = false;
-		blast_two.in_beam_struggle = false;
 		
+		blast_two.in_beam_struggle = false;
 		blast_one.in_beam_struggle = false;
 		
 		//allow blast one energy attacker to move again and have energy again
@@ -1101,12 +1102,12 @@ void EnergyAttackSystem::HandleBeamStruggleBetweenTwoBeams(LargeEnergyBlast& bla
 		queue_energy_pool_available_array[blast_two.energy_beam_attacker_index] = MAX_ENERGY_BEAMS_PER_ATTACKER - 1;
 	}
 	//else if blast one lost
-	else if(blast_one.collision_rect.width <= 0.0f || blast_one.collision_rect.height <= 0.0f)
+	else if(blast_one.collision_rect.width <= beam_struggle_lose_dimension || blast_one.collision_rect.height <= beam_struggle_lose_dimension)
 	{
 		//deactivate blast one
 		blast_one.active = false;
-		blast_one.in_beam_struggle = false;
 		
+		blast_one.in_beam_struggle = false;
 		blast_two.in_beam_struggle = false;
 		
 		//allow blast two energy attacker to move again and have energy again
@@ -1231,7 +1232,7 @@ void EnergyAttackSystem::MoveBlastBeamStruggle(LargeEnergyBlast& blast, float& d
 	//else if moving down
 	else if(blast.face_dir == FaceDirection::SOUTH)
 	{
-		//if height is out out of bounds
+		//if height is out of bounds
 		if(blast.collision_rect.height < 0.5f*world_num_tile_horizontal*30.0f)
 		{
 			blast.collision_rect.height += beam_struggle_speed*dt;
