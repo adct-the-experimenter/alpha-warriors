@@ -243,12 +243,13 @@ void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 			auto& energy_attacker = gCoordinator.GetComponent<EnergyAttacker>(entity);
 			energy_attacker.send_energy_beam = false;
 		}
+		
 		if(player.energyButtonHeld && !gen_entity_state.taking_damage)
 		{
 			player.time_energy_button_held += dt;
 			
-			//if energy button held down for 2 seconds
-			if(player.time_energy_button_held >= 2.0f)
+			//if energy button held down for 1 second
+			if(player.time_energy_button_held >= 1.5f)
 			{
 				//activate large energy blast
 				player.time_energy_button_held = 0.0f;
