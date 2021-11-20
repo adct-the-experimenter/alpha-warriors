@@ -167,6 +167,8 @@ struct EnergyAttacker
 	float energy_beam_angle_deg;	
 	
 	EnergyAttackerState state;
+	
+	bool energy_button_released;
 };
 
 

@@ -205,10 +205,12 @@ void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 		bool energy_button_released = false;
 		
 		//launch small energy beam if energy beam button pressed, and player is not taking damage
-		if(player.energyButtonPressed && !gen_entity_state.taking_damage)
+		if(player.energyButtonPressed && !gen_entity_state.taking_damage && !player.energyButtonHeld)
 		{			
 			auto& energy_attacker = gCoordinator.GetComponent<EnergyAttacker>(entity);
 			energy_button_released = true;
+			
+			energy_attacker.energy_button_released = true;
 			
 			//if player is ready to send large energy blast
 			if(energy_attacker.state == EnergyAttackerState::READY_TO_SEND_LARGE_BLAST)
@@ -273,7 +275,9 @@ void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 		}
 		else
 		{
+			auto& energy_attacker = gCoordinator.GetComponent<EnergyAttacker>(entity);
 			player.energyButtonPressed = false;
+			energy_attacker.energy_button_released = false;
 		}
 		
 		if(player.energyButtonHeld && !gen_entity_state.taking_damage && !energy_button_released)
@@ -281,6 +285,7 @@ void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 			
 			auto& energy_attacker = gCoordinator.GetComponent<EnergyAttacker>(entity);
 			
+			energy_attacker.energy_button_released = false;
 			
 			//if energy button held down for 1 second
 			if(player.time_energy_button_held >= 1.5f)

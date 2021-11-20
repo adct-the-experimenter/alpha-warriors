@@ -124,7 +124,7 @@ void InputReactorSystem::Update(ControllerInput& input)
 					
 					//if energy button is held down
 					if(input.gamepads_vec[i].button_held_array[SDL_CONTROLLER_BUTTON_Y]
-						&& !player.inTeleportMode)
+						&& !player.inTeleportMode && input.gamepads_vec[i].button_up_released != SDL_CONTROLLER_BUTTON_Y)
 					{
 						player.energyButtonHeld = true;
 					}

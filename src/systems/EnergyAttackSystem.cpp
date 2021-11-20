@@ -21,8 +21,7 @@ void EnergyAttackSystem::Init()
 		auto& energy_attacker = gCoordinator.GetComponent<EnergyAttacker>(entity);
 		energy_attacker.queue_id = iterator;
 		
-		bool energy_button_pressed = energy_attacker.state == EnergyAttackerState::SEND_PROJECTILE ? true : false;
-		energy_attacker_energy_button_pressed[iterator] = energy_button_pressed;
+		energy_attacker_energy_button_pressed[iterator] = false;
 		iterator++; 
 	}
 	
@@ -176,13 +175,15 @@ void EnergyAttackSystem::HandleEnergyBeamActivation()
 		}
 		else
 		{
+			
 			//for beam struggle
-			bool energy_button_pressed = energy_attacker.state == EnergyAttackerState::SEND_PROJECTILE ? true : false;
-			energy_attacker_energy_button_pressed[energy_attacker.queue_id] = energy_button_pressed;
+			energy_attacker_energy_button_pressed[energy_attacker.queue_id] = energy_attacker.energy_button_released;
 			
 			//std::cout << "energy attacker " << int(energy_attacker.queue_id) 
 			//		<< " energy button press: " << energy_attacker.send_energy_beam << std::endl;
 		}
+		
+		
 		
 	}
 }
