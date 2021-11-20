@@ -405,6 +405,7 @@ void WorldSystem::logic(float& dt)
 		else
 		{
 			world_destroyed = true;
+			time_scene_count = 0.0f;
 		}
 		
 	}
