@@ -109,7 +109,7 @@ void InputReactorSystem::Update(ControllerInput& input)
 					{
 						player.craftButtonPressed = true;
 					}
-					//if energy beam button pressed 
+					//if energy beam button released 
 					if(input.gamepads_vec[i].button_up_released == SDL_CONTROLLER_BUTTON_Y
 						&& !player.inTeleportMode)
 					{
@@ -121,6 +121,7 @@ void InputReactorSystem::Update(ControllerInput& input)
 					{
 						player.energyButtonPressed = false;
 					}
+					
 					//if energy button is held down
 					if(input.gamepads_vec[i].button_held_array[SDL_CONTROLLER_BUTTON_Y]
 						&& !player.inTeleportMode)

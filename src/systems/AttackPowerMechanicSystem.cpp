@@ -202,62 +202,24 @@ void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 			
 		}
 		
+		bool energy_button_released = false;
+		
 		//launch small energy beam if energy beam button pressed, and player is not taking damage
 		if(player.energyButtonPressed && !gen_entity_state.taking_damage)
-		{
+		{			
 			auto& energy_attacker = gCoordinator.GetComponent<EnergyAttacker>(entity);
+			energy_button_released = true;
 			
-			energy_attacker.send_energy_beam = true;
-			
-			player.energyButtonPressed = false;
-			
-			//if player is moving
-			if(rigidBody.velocity.x != 0.0f || rigidBody.velocity.y != 0.0f)
+			//if player is ready to send large energy blast
+			if(energy_attacker.state == EnergyAttackerState::READY_TO_SEND_LARGE_BLAST)
 			{
-				float horiz = rigidBody.velocity.x;
-				float vert = -1.0f*rigidBody.velocity.y + 1.0f;
-						
-				energy_attacker.energy_beam_angle_deg = atan2(vert,horiz)*(180.0f / PI);
-			}
-			//if player is not moving
-			else
-			{
-				float angle = 0.0f;
 				
-				//shoot in the direction that player was facing last frame
-				switch(animation.face_dir)
-				{
-					case FaceDirection::NONE:{ break;}
-					case FaceDirection::NORTH:{ angle = 90.0f; break;}
-					case FaceDirection::EAST:{ angle = 0.0f; break;}
-					case FaceDirection::WEST:{ angle = 180.0f; break;}
-					case FaceDirection::SOUTH:{ angle = -90.0f; break;}
-				}
-				
-				energy_attacker.energy_beam_angle_deg = angle;
-			}
-						
-		}
-		else
-		{
-			auto& energy_attacker = gCoordinator.GetComponent<EnergyAttacker>(entity);
-			energy_attacker.send_energy_beam = false;
-		}
-		
-		if(player.energyButtonHeld && !gen_entity_state.taking_damage)
-		{
-			player.time_energy_button_held += dt;
-			
-			//if energy button held down for 1 second
-			if(player.time_energy_button_held >= 1.5f)
-			{
 				//activate large energy blast
+				
 				player.time_energy_button_held = 0.0f;
 				
-				auto& energy_attacker = gCoordinator.GetComponent<EnergyAttacker>(entity);
+				energy_attacker.state = EnergyAttackerState::SEND_LARGE_BLAST;
 				
-				energy_attacker.energy_blast = true;
-											
 				float angle = 0.0f;
 					
 				//shoot in the direction that player was facing last frame
@@ -271,14 +233,86 @@ void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 				}
 				
 				energy_attacker.energy_beam_angle_deg = angle;
+				
+				player.energyButtonPressed = false;
 			}
+			else if(energy_attacker.state == EnergyAttackerState::IDLE || energy_attacker.state == EnergyAttackerState::CHARGING)
+			{
+				energy_attacker.state = EnergyAttackerState::SEND_PROJECTILE;
+			
+				player.energyButtonPressed = false;
+				
+				//if player is moving
+				if(rigidBody.velocity.x != 0.0f || rigidBody.velocity.y != 0.0f)
+				{
+					float horiz = rigidBody.velocity.x;
+					float vert = -1.0f*rigidBody.velocity.y + 1.0f;
+							
+					energy_attacker.energy_beam_angle_deg = atan2(vert,horiz)*(180.0f / PI);
+				}
+				//if player is not moving
+				else
+				{
+					float angle = 0.0f;
+					
+					//shoot in the direction that player was facing last frame
+					switch(animation.face_dir)
+					{
+						case FaceDirection::NONE:{ break;}
+						case FaceDirection::NORTH:{ angle = 90.0f; break;}
+						case FaceDirection::EAST:{ angle = 0.0f; break;}
+						case FaceDirection::WEST:{ angle = 180.0f; break;}
+						case FaceDirection::SOUTH:{ angle = -90.0f; break;}
+					}
+					
+					energy_attacker.energy_beam_angle_deg = angle;
+				}
+			}
+			
+						
+		}
+		else
+		{
+			player.energyButtonPressed = false;
+		}
+		
+		if(player.energyButtonHeld && !gen_entity_state.taking_damage && !energy_button_released)
+		{
+			
+			auto& energy_attacker = gCoordinator.GetComponent<EnergyAttacker>(entity);
+			
+			
+			//if energy button held down for 1 second
+			if(player.time_energy_button_held >= 1.5f)
+			{
+				energy_attacker.state = EnergyAttackerState::READY_TO_SEND_LARGE_BLAST;
+			}
+			else
+			{
+				player.time_energy_button_held += dt;
+				energy_attacker.state = EnergyAttackerState::CHARGING;
+			}
+			
+			float angle = 0.0f;
+					
+			//shoot in the direction that player was facing last frame
+			switch(animation.face_dir)
+			{
+				case FaceDirection::NONE:{ break;}
+				case FaceDirection::NORTH:{ angle = 90.0f; break;}
+				case FaceDirection::EAST:{ angle = 0.0f; break;}
+				case FaceDirection::WEST:{ angle = 180.0f; break;}
+				case FaceDirection::SOUTH:{ angle = -90.0f; break;}
+			}
+			
+			energy_attacker.energy_beam_angle_deg = angle;
 		}
 		else
 		{
 			player.energyButtonHeld = false;
-			auto& energy_attacker = gCoordinator.GetComponent<EnergyAttacker>(entity);
-			energy_attacker.energy_blast = false;
+			
 		}
+		
 		//cool down timers
 		
 		//regular attack cooldown

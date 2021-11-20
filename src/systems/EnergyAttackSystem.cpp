@@ -20,7 +20,9 @@ void EnergyAttackSystem::Init()
 	{
 		auto& energy_attacker = gCoordinator.GetComponent<EnergyAttacker>(entity);
 		energy_attacker.queue_id = iterator;
-		energy_attacker_energy_button_pressed[iterator] = &energy_attacker.send_energy_beam;
+		
+		bool energy_button_pressed = energy_attacker.state == EnergyAttackerState::SEND_PROJECTILE ? true : false;
+		energy_attacker_energy_button_pressed[iterator] = energy_button_pressed;
 		iterator++; 
 	}
 	
@@ -67,13 +69,13 @@ void EnergyAttackSystem::HandleEnergyBeamActivation()
 		if(queue_energy_pool_available_array[energy_attacker.queue_id] != -1 
 			)
 		{
-			//if sending energy beam
-			if(energy_attacker.send_energy_beam)
+			//if sending energy projectile
+			if(energy_attacker.state == EnergyAttackerState::SEND_PROJECTILE)
 			{
 				//take off 1 energy beam from available pool
 				queue_energy_pool_available_array[energy_attacker.queue_id] -= 1;
 				
-				energy_attacker.send_energy_beam = false;
+				energy_attacker.state = EnergyAttackerState::IDLE;
 				
 				size_t index = 0;
 				bool activated = false;
@@ -101,15 +103,15 @@ void EnergyAttackSystem::HandleEnergyBeamActivation()
 				
 				beam.time_active = 0.0f;
 			}
-			//else if large energy blast
-			else if(energy_attacker.energy_blast)
+			//else if large energy blast launched
+			else if(energy_attacker.state == EnergyAttackerState::SEND_LARGE_BLAST)
 			{
 				//std::cout << "Large energy blast activated!\n";
 				
 				//take off all energy beams from pool
 				queue_energy_pool_available_array[energy_attacker.queue_id] = -1;
 				
-				energy_attacker.energy_blast = false;
+				energy_attacker.state = EnergyAttackerState::IDLE;
 				
 				size_t index = 0;
 				bool activated = false;
@@ -175,7 +177,9 @@ void EnergyAttackSystem::HandleEnergyBeamActivation()
 		else
 		{
 			//for beam struggle
-			energy_attacker_energy_button_pressed[energy_attacker.queue_id] = energy_attacker.send_energy_beam;
+			bool energy_button_pressed = energy_attacker.state == EnergyAttackerState::SEND_PROJECTILE ? true : false;
+			energy_attacker_energy_button_pressed[energy_attacker.queue_id] = energy_button_pressed;
+			
 			//std::cout << "energy attacker " << int(energy_attacker.queue_id) 
 			//		<< " energy button press: " << energy_attacker.send_energy_beam << std::endl;
 		}
@@ -882,6 +886,38 @@ void EnergyAttackSystem::RenderEnergyBeams_VersusMode(CustomCamera* camera_ptr)
 					WHITE);
 			
 		}
+		
+		//render charging
+		for(auto entity : mEntities)
+		{
+			auto& energy_attacker = gCoordinator.GetComponent<EnergyAttacker>(entity);
+			
+			if(energy_attacker.state == EnergyAttackerState::CHARGING ||
+				energy_attacker.state == EnergyAttackerState::READY_TO_SEND_LARGE_BLAST)
+			{
+				
+				auto& transform = gCoordinator.GetComponent<Transform2D>(entity);
+				auto& collisionBox = gCoordinator.GetComponent<CollisionBox>(entity);
+				
+				float rad_angle = energy_attacker.energy_beam_angle_deg * ( PI / 180.0f);
+			
+				Rectangle charge_rect = {transform.position.x + cos(rad_angle)*static_cast<float>(collisionBox.width), 
+											transform.position.y - sin(rad_angle)*static_cast<float>(collisionBox.height), 
+											30.0f,30.0f};
+				
+				
+				if(energy_attacker.state == EnergyAttackerState::READY_TO_SEND_LARGE_BLAST)
+				{
+					charge_rect.width = 90.0f;
+					charge_rect.height = 90.0f;
+				}
+				
+				DrawRectangle(charge_rect.x - camera_rect_ptr->x, 
+					charge_rect.y - camera_rect_ptr->y, 
+					charge_rect.width, charge_rect.height, 
+					RED);
+			}
+		}
 					
 	}
 }
@@ -936,6 +972,37 @@ void EnergyAttackSystem::RenderEnergyBeams_FreeplayMode(CameraManager& camera_ma
 					
 				}
 				
+				//render charging
+				for(auto entity : mEntities)
+				{
+					auto& energy_attacker = gCoordinator.GetComponent<EnergyAttacker>(entity);
+					
+					if(energy_attacker.state == EnergyAttackerState::CHARGING ||
+						energy_attacker.state == EnergyAttackerState::READY_TO_SEND_LARGE_BLAST)
+					{
+						
+						auto& transform = gCoordinator.GetComponent<Transform2D>(entity);
+						auto& collisionBox = gCoordinator.GetComponent<CollisionBox>(entity);
+						
+						float rad_angle = energy_attacker.energy_beam_angle_deg * ( PI / 180.0f);
+					
+						Rectangle charge_rect = {transform.position.x + cos(rad_angle)*static_cast<float>(collisionBox.width), 
+													transform.position.y - sin(rad_angle)*static_cast<float>(collisionBox.height), 
+													30.0f,30.0f};
+						
+						
+						if(energy_attacker.state == EnergyAttackerState::READY_TO_SEND_LARGE_BLAST)
+						{
+							charge_rect.width = 90.0f;
+							charge_rect.height = 90.0f;
+						}
+						
+						DrawRectangle(charge_rect.x - camera_rect_ptr->x, 
+							charge_rect.y - camera_rect_ptr->y, 
+							charge_rect.width, charge_rect.height, 
+							RED);
+					}
+				}
 				
 			}
 			else

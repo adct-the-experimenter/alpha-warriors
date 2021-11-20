@@ -158,17 +158,15 @@ struct AttackBox
 
 enum class PlayerState : std::uint8_t { IDLE=0, ATTACKING, HURTING};
 
+enum class EnergyAttackerState : std::uint8_t {IDLE = 0, CHARGING, READY_TO_SEND_LARGE_BLAST, SEND_PROJECTILE,SEND_LARGE_BLAST};
 
 struct EnergyAttacker
 {
-	bool send_energy_beam;
-	
-	bool energy_blast;
-	
 	uint8_t queue_id;
 	
-	float energy_beam_angle_deg;
+	float energy_beam_angle_deg;	
 	
+	EnergyAttackerState state;
 };
 
 
