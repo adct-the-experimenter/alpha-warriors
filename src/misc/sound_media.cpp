@@ -4,20 +4,19 @@
 
 #include "char_media.h"
 
-//General sounds
-Sound general_sounds[5];
-
-
 bool LoadGeneralAudio()
 {
-	std::string test_audio_file = DATADIR_STR + "/foom_0.wav";
+	for(size_t i = 0; i < NUMBER_OF_GENERAL_SOUNDS; i++)
+	{
+		std::string fp = DATADIR_STR + general_sound_audio_files_paths[i];
+		general_sounds[i] = LoadSound(fp.c_str());
+	}
 	
-	general_sounds[0] = LoadSound(test_audio_file.c_str());
 	
 	return true;
 }
 
-void PlayGeneralSound(GeneralSoundID& sound_id)
+void PlayGeneralSound(GeneralSoundID sound_id)
 {
 	PlaySound(general_sounds[ static_cast<int>(sound_id) ]);
 }
@@ -29,5 +28,9 @@ void PlayCharacterSound(std::int16_t& char_index,CharSoundID& sound_id)
 
 void UnloadGeneralAudio()
 {
-	UnloadSound(general_sounds[0]);
+	for(size_t i = 0; i < NUMBER_OF_GENERAL_SOUNDS; i++)
+	{
+		UnloadSound(general_sounds[i]);
+	}
+	
 }

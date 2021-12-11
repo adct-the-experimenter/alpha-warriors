@@ -774,6 +774,7 @@ void render()
 	
 	EndTextureMode();
 	
+	BeginDrawing();
 	
 	// Draw RenderTexture2D to window, properly scaled
 	//DrawTexturePro(target.texture, (Rectangle){ 0.0f, 0.0f, (float)target.texture.width, (float)-target.texture.height },
@@ -902,7 +903,7 @@ bool loadMedia()
 	{
 		return false;
 	}
-	
+		
 	return true;
 }
 

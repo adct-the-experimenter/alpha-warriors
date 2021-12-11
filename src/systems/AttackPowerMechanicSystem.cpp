@@ -506,6 +506,7 @@ void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 			
 			if(player.teleport_cooldown_timer_val >= 0.5f)
 			{
+				PlayGeneralSound(GeneralSoundID::TELEPORT_ONE);
 				rigidBody.velocity.x = (1/teleport_speed_boost)*rigidBody.velocity.x;
 				rigidBody.velocity.y = (1/teleport_speed_boost)*rigidBody.velocity.y;
 				//reset animation for attack mode
@@ -524,6 +525,8 @@ void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 			
 			if(player.teleport_cooldown_timer_val > 0.0f)
 			{
+				PlayGeneralSound(GeneralSoundID::TELEPORT_ONE);
+				
 				if(player.teleport_cooldown_timer_val >= 1.0f)
 				{
 					player.teleport_cooldown_timer_val = 0.0f;
