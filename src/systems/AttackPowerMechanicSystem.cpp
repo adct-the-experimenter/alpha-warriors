@@ -33,7 +33,6 @@ void AttackPowerMechanicSystem::Init(std::uint8_t num_players)
 	
 	for (auto const& entity : mEntities)
 	{
-		auto& player = gCoordinator.GetComponent<Player>(entity);
 		auto& gen_entity_state = gCoordinator.GetComponent<GeneralEnityState>(entity);
 		auto& transform = gCoordinator.GetComponent<Transform2D>(entity);
 		auto& sound_comp = gCoordinator.GetComponent<SoundComponent>(entity);
@@ -81,7 +80,6 @@ void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 		
 		auto& transform = gCoordinator.GetComponent<Transform2D>(entity);
 		auto& rigidBody = gCoordinator.GetComponent<RigidBody2D>(entity);
-		auto& player = gCoordinator.GetComponent<Player>(entity);
 		auto& animation = gCoordinator.GetComponent<Animation>(entity);
 		auto& collisionBox = gCoordinator.GetComponent<CollisionBox>(entity);
 		auto& gen_entity_state = gCoordinator.GetComponent<GeneralEnityState>(entity);
@@ -713,7 +711,12 @@ void AttackPowerMechanicSystem::CollisionDetectionBetweenPlayers()
 
 bool AttackPowerMechanicSystem::AreBothPlayersAlive(int& player_a_num, int& player_b_num)
 {
-	if(*entity_alive_ptrs[player_a_num] && *entity_alive_ptrs[player_b_num])
+	if(!entity_alive_ptrs[player_a_num] || !entity_alive_ptrs[player_b_num])
+	{
+		return false;
+	}
+	
+	else if(*entity_alive_ptrs[player_a_num] && *entity_alive_ptrs[player_b_num])
 	{
 		return true;
 	}
@@ -781,12 +784,12 @@ void AttackPowerMechanicSystem::HandlePossibleCollisionBetweenPlayers(int& playe
 	attack_event = AttackPowerMechanicSystem::CheckCollisionBetween2Players(player_a_num, player_b_num);
 	
 	//if attack happened, and victim is not already in state of taking damage or in hurt invicible state
-	if(attack_event.attack && !*entity_taking_damage_state_ptrs[attack_event.player_num_victim - 1] && !*entity_hurt_invincible_ptrs[attack_event.player_num_victim - 1] )
+	if(attack_event.attack && !*entity_taking_damage_state_ptrs[attack_event.player_num_victim] && !*entity_hurt_invincible_ptrs[attack_event.player_num_victim] )
 	{
 		//std::cout << "Player " << int(attack_event.player_num_attacker) << " took away 10 HP from player " << int(attack_event.player_num_victim) << std::endl;
 		
 		//decrease health of victim player
-		*entity_health_ptrs[attack_event.player_num_victim] -= 10*(*entity_attack_damage_factor_ptrs[attack_event.player_num_attacker - 1]);
+		*entity_health_ptrs[attack_event.player_num_victim] -= 10*(*entity_attack_damage_factor_ptrs[attack_event.player_num_attacker]);
 		//set last hit by player variable for victim player
 		*entity_last_hit_by_ptrs[attack_event.player_num_victim] = attack_event.player_num_attacker;
 		
@@ -794,7 +797,7 @@ void AttackPowerMechanicSystem::HandlePossibleCollisionBetweenPlayers(int& playe
 		
 		//knock back
 		float tiles_knock = 2.0f;
-		float knockback = tiles_knock*(*entity_attack_damage_factor_ptrs[attack_event.player_num_attacker - 1]);
+		float knockback = tiles_knock*(*entity_attack_damage_factor_ptrs[attack_event.player_num_attacker]);
 		float sign_x = 1;
 		float sign_y = 1;
 		
@@ -816,8 +819,8 @@ void AttackPowerMechanicSystem::HandlePossibleCollisionBetweenPlayers(int& playe
 		entity_knockback[attack_event.player_num_victim]->y = sign_y*knockback;
 		
 		//make sound
-		//player_sound_comp_types[attack_event.player_num_victim - 1]->sound_type = SoundType::GENERAL_SOUND;
-		//player_sound_comp_types[attack_event.player_num_victim - 1]->general_sound_id = GeneralSoundID::HIT_SOUND;
+		//player_sound_comp_types[attack_event.player_num_victim]->sound_type = SoundType::GENERAL_SOUND;
+		//player_sound_comp_types[attack_event.player_num_victim]->general_sound_id = GeneralSoundID::HIT_SOUND;
 		
 		entity_sound_comp_types[attack_event.player_num_attacker]->sound_type = SoundType::CHAR_SOUND;
 		entity_sound_comp_types[attack_event.player_num_attacker]->char_sound_id = CharSoundID::HIT_SOUND;
@@ -834,7 +837,6 @@ void AttackPowerMechanicSystem::ReactToCollisions(float& dt)
 	{
 		
 		auto& rigidBody = gCoordinator.GetComponent<RigidBody2D>(entity);
-		auto& player = gCoordinator.GetComponent<Player>(entity);
 		auto& animation = gCoordinator.GetComponent<Animation>(entity);
 		auto& gen_entity_state = gCoordinator.GetComponent<GeneralEnityState>(entity);
 		
