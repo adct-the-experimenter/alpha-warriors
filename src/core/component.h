@@ -65,16 +65,23 @@ struct Transform2D
 struct CollisionBox
 {
 	std::uint32_t width;
-	std::uint32_t height;
-	
-	std::uint8_t world_id;
+	std::uint32_t height;	
 };
 
 enum class EntityActorType : std::uint8_t {OBJECT = 0,PLAYER,ENEMY};
 enum class EntityState : std::uint8_t {NONE=0,ATTACKING_NO_MOVE,HURTING_KNOCKBACK,DEAD};
 
+struct AttackBox
+{
+	bool active = false;
+	std::uint8_t player_num;
+	Rectangle collisionBox;
+};
+
 struct GeneralEnityState
 {
+	uint64_t entity_num;
+	
 	EntityActorType actor_type;
 	EntityState actor_state;
 	
@@ -94,6 +101,63 @@ struct GeneralEnityState
 	//amount which component is pushed/knocked back
 	Vector2 victim_knockback_amt;
 	
+//input for attack systems
+	bool alive;
+	
+	//parameters related to power
+	
+	//indicate if player pressed power button
+	bool powerButtonPressed;
+	
+	//indicate if player pressed regular attack button
+	bool regularAttackButtonPressed;
+	
+	//indicate if player pressed craft button
+	bool craftButtonPressed;
+	
+	//indicate if player pressed the energy beam button
+	bool energyButtonPressed;
+	
+	//indicate if player pressed teleport combination button
+	bool teleportButton;
+	//indicate if player in teleport
+	bool inTeleportMode;
+	float teleport_cooldown_timer_val;
+	
+	bool energyButtonHeld;
+	float time_energy_button_held;
+	
+	//bitset to indicate which power a player has
+	std::bitset <8> collected_powers;
+	
+	//bitset to indicate which power a player has activated
+	std::bitset <8> powers_activated;
+	
+	//cooldown timer for regular arract
+	float regular_attack_cooldown_timer_val;
+	
+	//cooldown timers for each special power
+	std::array <float,8> sp_attack_cooldown_timer_val_array;
+	
+	//current power set to be used
+	std::uint8_t current_power; //0-7
+	
+	//power requested by player input
+	std::int8_t requested_power; // -1, 0-7
+	
+	//indicate which player last hit this player
+	std::uint8_t last_hit_by_entity_num;
+	
+	//attack collision box
+	AttackBox attack_box;
+		
+	//character-specific variables for player
+	float attack_box_offset;
+	float health_factor;
+	float speed_factor;
+	float jump_factor;
+	float damage_factor;
+		
 };
 
 
@@ -148,13 +212,6 @@ struct RenderModelComponent
 	std::bitset <4> camera_bitset;
 };
 
-struct AttackBox
-{
-	bool active = false;
-	std::uint8_t player_num;
-	Rectangle collisionBox;
-	
-};
 
 enum class PlayerState : std::uint8_t { IDLE=0, ATTACKING, HURTING};
 
@@ -175,70 +232,6 @@ struct EnergyAttacker
 struct Player
 {
 	std::uint8_t player_num;
-	
-	bool alive;
-	
-	//parameters related to power
-	
-	//indicate if player pressed power button
-	bool powerButtonPressed;
-	
-	//indicate if player pressed regular attack button
-	bool regularAttackButtonPressed;
-	
-	//indicate if player pressed craft button
-	bool craftButtonPressed;
-	
-	//indicate if player pressed the energy beam button
-	bool energyButtonPressed;
-	
-	//indicate if player pressed teleport combination button
-	bool teleportButton;
-	//indicate if player in teleport
-	bool inTeleportMode;
-	float teleport_cooldown_timer_val;
-	
-	bool energyButtonHeld;
-	float time_energy_button_held;
-	
-	//bitset to indicate which power a player has
-	std::bitset <8> collected_powers;
-	
-	//bitset to indicate which power a player has activated
-	std::bitset <8> powers_activated;
-	
-	//cooldown timer for regular arract
-	float regular_attack_cooldown_timer_val;
-	
-	//cooldown timers for each special power
-	std::array <float,8> sp_attack_cooldown_timer_val_array;
-	
-	//current power set to be used
-	std::uint8_t current_power; //0-7
-	
-	//power requested by player input
-	std::int8_t requested_power; // -1, 0-7
-	
-	//indicate which player last hit this player
-	std::uint8_t last_hit_by_player_num;
-	
-	//attack collision box
-	AttackBox attack_box;
-		
-	//character-specific variables for player
-	float attack_box_offset;
-	float health_factor;
-	float speed_factor;
-	float jump_factor;
-	float damage_factor;
-	
-	
-	//state of player
-	PlayerState state;
-	
-	
-	//world id
-	std::uint8_t world_id;
 	
 	bool camera_lead; //indicates if player is camera leader
 	std::uint8_t camera_num_leader; //indicate which camera player is leading 

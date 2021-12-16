@@ -14,21 +14,23 @@ extern Coordinator gCoordinator;
 
 void AttackPowerMechanicSystem::Init(std::uint8_t num_players)
 {
-	for(size_t i = 0; i < 8; i++)
+	for(size_t i = 0; i < MAX_NUMBER_OF_ENTITIES_IN_GAME; i++)
 	{
-		player_attack_boxes_ptrs[i] = nullptr;
-		player_health_ptrs[i] = nullptr;
-		player_position_ptrs[i] = nullptr;
-		player_last_hit_by_ptrs[i] = nullptr;
-		player_alive_ptrs[i] = nullptr;
-		player_taking_damage_state_ptrs[i] = nullptr;
-		player_attack_damage_factor_ptrs[i] = nullptr;
-		player_hurt_invincible_ptrs[i] = nullptr;
-		player_sound_comp_types[i] = nullptr;
+		entity_attack_boxes_ptrs[i] = nullptr;
+		entity_health_ptrs[i] = nullptr;
+		entity_position_ptrs[i] = nullptr;
+		entity_last_hit_by_ptrs[i] = nullptr;
+		entity_alive_ptrs[i] = nullptr;
+		entity_taking_damage_state_ptrs[i] = nullptr;
+		entity_attack_damage_factor_ptrs[i] = nullptr;
+		entity_hurt_invincible_ptrs[i] = nullptr;
+		entity_sound_comp_types[i] = nullptr;
 		
-		player_knockback[i] = nullptr;
+		entity_knockback[i] = nullptr;
 	}
-		
+	
+	size_t iterator = 0;
+	
 	for (auto const& entity : mEntities)
 	{
 		auto& player = gCoordinator.GetComponent<Player>(entity);
@@ -36,28 +38,30 @@ void AttackPowerMechanicSystem::Init(std::uint8_t num_players)
 		auto& transform = gCoordinator.GetComponent<Transform2D>(entity);
 		auto& sound_comp = gCoordinator.GetComponent<SoundComponent>(entity);
 		
-		player_health_ptrs[player.player_num - 1] = &gen_entity_state.health;
+		entity_health_ptrs[iterator] = &gen_entity_state.health;
 		
-		player_attack_boxes_ptrs[player.player_num - 1] = &player.attack_box;
+		entity_attack_boxes_ptrs[iterator] = &gen_entity_state.attack_box;
 		
-		player_position_ptrs[player.player_num - 1] = &transform.position;
+		entity_position_ptrs[iterator] = &transform.position;
 				
-		player_last_hit_by_ptrs[player.player_num - 1] = &player.last_hit_by_player_num;
+		entity_last_hit_by_ptrs[iterator] = &gen_entity_state.last_hit_by_entity_num;
 		
-		player_alive_ptrs[player.player_num - 1] = &player.alive;
+		entity_alive_ptrs[iterator] = &gen_entity_state.alive;
 		
-		player_taking_damage_state_ptrs[player.player_num - 1] = &gen_entity_state.taking_damage;
+		entity_taking_damage_state_ptrs[iterator] = &gen_entity_state.taking_damage;
 		
-		player_hurt_invincible_ptrs[player.player_num - 1] = &gen_entity_state.hurt_invincible;
+		entity_hurt_invincible_ptrs[iterator] = &gen_entity_state.hurt_invincible;
 		
-		player_attack_damage_factor_ptrs[player.player_num - 1] = &player.damage_factor;
+		entity_attack_damage_factor_ptrs[iterator] = &gen_entity_state.damage_factor;
 		
 		//set collected power for player
-		player.collected_powers[player.current_power] = 1;
+		gen_entity_state.collected_powers[gen_entity_state.current_power] = 1;
 		
-		player_sound_comp_types[player.player_num - 1] = &sound_comp;
+		entity_sound_comp_types[iterator] = &sound_comp;
 		
-		player_knockback[player.player_num - 1] = &gen_entity_state.victim_knockback_amt;
+		entity_knockback[iterator] = &gen_entity_state.victim_knockback_amt;
+		
+		iterator++;
 	}
 	
 	m_num_players = num_players;
@@ -86,37 +90,36 @@ void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 		if(gen_entity_state.actor_state == EntityState::DEAD){continue;}
 		
 		//if player pressed attack button and isn't in hurting state and alive.
-		if(player.regularAttackButtonPressed && player.alive && !gen_entity_state.taking_damage && player.state != PlayerState::HURTING)
+		if(gen_entity_state.regularAttackButtonPressed && gen_entity_state.alive && !gen_entity_state.taking_damage && gen_entity_state.actor_state != EntityState::HURTING_KNOCKBACK)
 		{
 			//if attack box is not active i.e. player is not attacking already
-			if(!player.attack_box.active)
+			if(!gen_entity_state.attack_box.active)
 			{
 				animation.attackMode = 0;
 			
 				//initialize attack box
 				
-				player.attack_box.active = true;
-				player.state = PlayerState::ATTACKING;
+				gen_entity_state.attack_box.active = true;
 				gen_entity_state.actor_state = EntityState::ATTACKING_NO_MOVE;
 			}
 			
-			player.regularAttackButtonPressed = false;
+			gen_entity_state.regularAttackButtonPressed = false;
 		}
 		
 		//change and/or activate current power based on input
-		else if(player.powerButtonPressed && player.requested_power < 8 && player.alive && !gen_entity_state.taking_damage && player.state != PlayerState::HURTING)
+		else if(gen_entity_state.powerButtonPressed && gen_entity_state.requested_power < 8 && gen_entity_state.alive && !gen_entity_state.taking_damage && gen_entity_state.actor_state != EntityState::HURTING_KNOCKBACK)
 		{
 			
 			//std::cout << "Player " << int(player.player_num) << " requested this power: " << int(player.requested_power) << std::endl;
 			//check which power player is requesting
 			//change to power requested if player has this power
-			if( player.requested_power != -1 && player.collected_powers[player.requested_power])
+			if( gen_entity_state.requested_power != -1 && gen_entity_state.collected_powers[gen_entity_state.requested_power])
 			{
 				//activate power, if not active
-				if( !player.powers_activated[player.requested_power])
+				if( !gen_entity_state.powers_activated[gen_entity_state.requested_power])
 				{
-					player.current_power = player.requested_power;
-					player.state = PlayerState::ATTACKING;
+					gen_entity_state.current_power = gen_entity_state.requested_power;
+					gen_entity_state.actor_state = EntityState::ATTACKING_NO_MOVE;
 					
 				}
 				
@@ -125,20 +128,20 @@ void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 			else
 			{
 				//reset back to the power that the player has used previously saved in current power.
-				player.requested_power = player.current_power;
+				gen_entity_state.requested_power = gen_entity_state.current_power;
 			}
 			
 			//activate power if not activated
-			if( !player.powers_activated[player.current_power])
+			if( !gen_entity_state.powers_activated[gen_entity_state.current_power])
 			{
-				player.state = PlayerState::ATTACKING;
-				animation.attackMode = player.current_power + 1;
+				gen_entity_state.actor_state = EntityState::ATTACKING_NO_MOVE;
+				animation.attackMode = gen_entity_state.current_power + 1;
 				
 				//std::cout << "current power of player " << int(player.player_num) << ": " << int(player.current_power) << std::endl;
-				player.powers_activated[player.current_power] = 1;
+				gen_entity_state.powers_activated[gen_entity_state.current_power] = 1;
 				
 				//set attack box or player speed based on power
-				switch(player.current_power)
+				switch(gen_entity_state.current_power)
 				{
 					// sneak
 					case 0:
@@ -153,7 +156,7 @@ void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 						rigidBody.velocity.x = speed_boost*rigidBody.velocity.x;
 						
 						//cancel any attack if dashing
-						player.attack_box.active = false;
+						gen_entity_state.attack_box.active = false;
 						
 						break;
 					}
@@ -161,10 +164,10 @@ void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 					case 2:
 					{
 						//activate collision box
-						player.attack_box.active = true;
+						gen_entity_state.attack_box.active = true;
 						
-						player.attack_box.collisionBox.x = -5;
-						player.attack_box.collisionBox.y = -5;
+						gen_entity_state.attack_box.collisionBox.x = -5;
+						gen_entity_state.attack_box.collisionBox.y = -5;
 						//it won't collide with another attack box
 						
 						break;
@@ -172,7 +175,7 @@ void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 					//chunks
 					case 3:
 					{
-						player.attack_box.active = true;
+						gen_entity_state.attack_box.active = true;
 
 						//decrease horizontal speed
 						rigidBody.velocity.x = 0.5*rigidBody.velocity.x;
@@ -181,7 +184,7 @@ void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 					//big
 					case 4:
 					{
-						player.attack_box.active = true;
+						gen_entity_state.attack_box.active = true;
 						
 						//move player up
 						transform.position.y -= 60;
@@ -198,14 +201,14 @@ void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 			}
 			
 			//reset power button pressed
-			player.powerButtonPressed = false;
+			gen_entity_state.powerButtonPressed = false;
 			
 		}
 		
 		bool energy_button_released = false;
 		
 		//launch small energy beam if energy beam button pressed, and player is not taking damage
-		if(player.energyButtonPressed && !gen_entity_state.taking_damage && !player.energyButtonHeld)
+		if(gen_entity_state.energyButtonPressed && !gen_entity_state.taking_damage && !gen_entity_state.energyButtonHeld)
 		{			
 			auto& energy_attacker = gCoordinator.GetComponent<EnergyAttacker>(entity);
 			energy_button_released = true;
@@ -218,7 +221,7 @@ void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 				
 				//activate large energy blast
 				
-				player.time_energy_button_held = 0.0f;
+				gen_entity_state.time_energy_button_held = 0.0f;
 				
 				energy_attacker.state = EnergyAttackerState::SEND_LARGE_BLAST;
 				
@@ -236,13 +239,13 @@ void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 				
 				energy_attacker.energy_beam_angle_deg = angle;
 				
-				player.energyButtonPressed = false;
+				gen_entity_state.energyButtonPressed = false;
 			}
 			else if(energy_attacker.state == EnergyAttackerState::IDLE || energy_attacker.state == EnergyAttackerState::CHARGING)
 			{
 				energy_attacker.state = EnergyAttackerState::SEND_PROJECTILE;
 			
-				player.energyButtonPressed = false;
+				gen_entity_state.energyButtonPressed = false;
 				
 				//if player is moving
 				if(rigidBody.velocity.x != 0.0f || rigidBody.velocity.y != 0.0f)
@@ -276,11 +279,11 @@ void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 		else
 		{
 			auto& energy_attacker = gCoordinator.GetComponent<EnergyAttacker>(entity);
-			player.energyButtonPressed = false;
+			gen_entity_state.energyButtonPressed = false;
 			energy_attacker.energy_button_released = false;
 		}
 		
-		if(player.energyButtonHeld && !gen_entity_state.taking_damage && !energy_button_released)
+		if(gen_entity_state.energyButtonHeld && !gen_entity_state.taking_damage && !energy_button_released)
 		{
 			
 			auto& energy_attacker = gCoordinator.GetComponent<EnergyAttacker>(entity);
@@ -288,13 +291,13 @@ void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 			energy_attacker.energy_button_released = false;
 			
 			//if energy button held down for 1 second
-			if(player.time_energy_button_held >= 1.5f)
+			if(gen_entity_state.time_energy_button_held >= 1.5f)
 			{
 				energy_attacker.state = EnergyAttackerState::READY_TO_SEND_LARGE_BLAST;
 			}
 			else
 			{
-				player.time_energy_button_held += dt;
+				gen_entity_state.time_energy_button_held += dt;
 				energy_attacker.state = EnergyAttackerState::CHARGING;
 			}
 			
@@ -314,31 +317,30 @@ void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 		}
 		else
 		{
-			player.energyButtonHeld = false;
+			gen_entity_state.energyButtonHeld = false;
 			
 		}
 		
 		//cool down timers
 		
 		//regular attack cooldown
-		if(player.attack_box.active)
+		if(gen_entity_state.attack_box.active)
 		{
-			player.regular_attack_cooldown_timer_val += dt;
+			gen_entity_state.regular_attack_cooldown_timer_val += dt;
 			
 			//if player is not in the air, stop player from moving horizontally
 			if(!rigidBody.velocity.y){rigidBody.velocity.x = 0.0f;}
 			
 			//if more than 0.5 seconds has passed
-			if(player.regular_attack_cooldown_timer_val >= 0.5f)
+			if(gen_entity_state.regular_attack_cooldown_timer_val >= 0.5f)
 			{
 				//reset attackbox active
-				player.attack_box.active = false;
+				gen_entity_state.attack_box.active = false;
 				//reset timer value
-				player.regular_attack_cooldown_timer_val = 0;
+				gen_entity_state.regular_attack_cooldown_timer_val = 0;
 				//reset animation
 				animation.attackMode = -1;
 				
-				player.state = PlayerState::IDLE;
 				gen_entity_state.actor_state = EntityState::NONE;
 			}
 		}
@@ -348,10 +350,10 @@ void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 		{
 			
 			//if special power is active
-			if(player.powers_activated.test(i))
+			if(gen_entity_state.powers_activated.test(i))
 			{
 				
-				player.sp_attack_cooldown_timer_val_array[i] += dt;
+				gen_entity_state.sp_attack_cooldown_timer_val_array[i] += dt;
 								
 				//reset attack box or player speed based on power
 				switch(i)
@@ -361,16 +363,16 @@ void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 					{
 						
 						//if more than 2 seconds have passed
-						if(player.sp_attack_cooldown_timer_val_array[i] >= 3)
+						if(gen_entity_state.sp_attack_cooldown_timer_val_array[i] >= 3)
 						{
 							//reset bitset for power activated if cooldown time has finished
-							player.powers_activated[i] = 0;
+							gen_entity_state.powers_activated[i] = 0;
 							//reset cooldown timer value
-							player.sp_attack_cooldown_timer_val_array[i] = 0;
+							gen_entity_state.sp_attack_cooldown_timer_val_array[i] = 0;
 							//reset animation for attack mode
 							animation.attackMode = -1;
 							
-							player.state = PlayerState::IDLE;
+							gen_entity_state.actor_state = EntityState::NONE;
 						}
 						break;
 					}
@@ -378,18 +380,18 @@ void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 					case 1:
 					{
 						//return to original horizontal speed after 1 second
-						if(player.sp_attack_cooldown_timer_val_array[i] >= 1)
+						if(gen_entity_state.sp_attack_cooldown_timer_val_array[i] >= 1)
 						{
 							rigidBody.velocity.x = (1/speed_boost)*rigidBody.velocity.x;
 							
 							//reset bitset for power activated if cooldown time has finished
-							player.powers_activated[i] = 0;
+							gen_entity_state.powers_activated[i] = 0;
 							//reset cooldown timer value
-							player.sp_attack_cooldown_timer_val_array[i] = 0;
+							gen_entity_state.sp_attack_cooldown_timer_val_array[i] = 0;
 							//reset animation for attack mode
 							animation.attackMode = -1;
 							
-							player.state = PlayerState::IDLE;
+							gen_entity_state.actor_state = EntityState::NONE;
 						}
 						
 						
@@ -399,19 +401,19 @@ void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 					case 2:
 					{
 						//if more than 4 seconds have passed
-						if(player.sp_attack_cooldown_timer_val_array[i] >= 4)
+						if(gen_entity_state.sp_attack_cooldown_timer_val_array[i] >= 4)
 						{
-							player.attack_box.active = false;
+							gen_entity_state.attack_box.active = false;
 							
 							//reset bitset for power activated if cooldown time has finished
-							player.powers_activated[i] = 0;
+							gen_entity_state.powers_activated[i] = 0;
 							//reset cooldown timer value
-							player.sp_attack_cooldown_timer_val_array[i] = 0;
+							gen_entity_state.sp_attack_cooldown_timer_val_array[i] = 0;
 							
 							//reset animation for attack mode
 							animation.attackMode = -1;
 							
-							player.state = PlayerState::IDLE;
+							gen_entity_state.actor_state = EntityState::NONE;
 							
 						}
 						
@@ -421,22 +423,22 @@ void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 					case 3:
 					{
 						//if more than 4 seconds have passed
-						if(player.sp_attack_cooldown_timer_val_array[i] >= 4)
+						if(gen_entity_state.sp_attack_cooldown_timer_val_array[i] >= 4)
 						{
 							//decrease horizontal speed
 							rigidBody.velocity.x = 2*rigidBody.velocity.x;
 							
-							player.attack_box.active = false;
+							gen_entity_state.attack_box.active = false;
 							
 							//reset bitset for power activated if cooldown time has finished
-							player.powers_activated[i] = 0;
+							gen_entity_state.powers_activated[i] = 0;
 							//reset cooldown timer value
-							player.sp_attack_cooldown_timer_val_array[i] = 0;
+							gen_entity_state.sp_attack_cooldown_timer_val_array[i] = 0;
 							
 							//reset animation for attack mode
 							animation.attackMode = -1;
 							
-							player.state = PlayerState::IDLE;
+							gen_entity_state.actor_state = EntityState::NONE;
 							
 						}
 						
@@ -446,15 +448,15 @@ void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 					case 4:
 					{
 						//if more than 5 seconds have passed
-						if(player.sp_attack_cooldown_timer_val_array[i] >= 1)
+						if(gen_entity_state.sp_attack_cooldown_timer_val_array[i] >= 1)
 						{
 							
-							if(player.sp_attack_cooldown_timer_val_array[i] >= 4)
+							if(gen_entity_state.sp_attack_cooldown_timer_val_array[i] >= 4)
 							{
 								//reset bitset for power activated if cooldown time has finished
-								player.powers_activated[i] = 0;
+								gen_entity_state.powers_activated[i] = 0;
 								//reset cooldown timer value
-								player.sp_attack_cooldown_timer_val_array[i] = 0;
+								gen_entity_state.sp_attack_cooldown_timer_val_array[i] = 0;
 							}
 							else
 							{
@@ -466,13 +468,13 @@ void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 								collisionBox.width = 30;
 								collisionBox.height = 60;
 								
-								player.attack_box.active = false;
+								gen_entity_state.attack_box.active = false;
 								
 								
 								//reset animation for attack mode
 								animation.attackMode = -1;
 								
-								player.state = PlayerState::IDLE;
+								gen_entity_state.actor_state = EntityState::NONE;
 							}
 							
 							
@@ -489,9 +491,9 @@ void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 		}
 		
 		//activation and cooldown for teleport button if activated
-		if(player.teleportButton && !gen_entity_state.taking_damage )
+		if(gen_entity_state.teleportButton && !gen_entity_state.taking_damage )
 		{			
-			player.inTeleportMode = true;
+			gen_entity_state.inTeleportMode = true;
 			
 			//rigidBody.in_flying_state = true;
 			
@@ -502,9 +504,9 @@ void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 			//make player invisible
 			animation.attackMode = 1;
 			
-			player.teleport_cooldown_timer_val += dt;
+			gen_entity_state.teleport_cooldown_timer_val += dt;
 			
-			if(player.teleport_cooldown_timer_val >= 0.5f)
+			if(gen_entity_state.teleport_cooldown_timer_val >= 0.5f)
 			{
 				PlayGeneralSound(GeneralSoundID::TELEPORT_ONE);
 				rigidBody.velocity.x = (1/teleport_speed_boost)*rigidBody.velocity.x;
@@ -512,25 +514,25 @@ void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 				//reset animation for attack mode
 				animation.attackMode = -1;
 			
-				player.state = PlayerState::IDLE;
+				gen_entity_state.actor_state = EntityState::NONE;
 				
-				if(player.teleport_cooldown_timer_val >= 1.0f){player.teleport_cooldown_timer_val = 0.0f;}
+				if(gen_entity_state.teleport_cooldown_timer_val >= 1.0f){gen_entity_state.teleport_cooldown_timer_val = 0.0f;}
 			}
 			
 			
 		}
-		else if(!player.teleportButton && !gen_entity_state.taking_damage)
+		else if(!gen_entity_state.teleportButton && !gen_entity_state.taking_damage)
 		{
-			player.inTeleportMode = false;
+			gen_entity_state.inTeleportMode = false;
 			
-			if(player.teleport_cooldown_timer_val > 0.0f)
+			if(gen_entity_state.teleport_cooldown_timer_val > 0.0f)
 			{
 				PlayGeneralSound(GeneralSoundID::TELEPORT_ONE);
 				
-				if(player.teleport_cooldown_timer_val >= 1.0f)
+				if(gen_entity_state.teleport_cooldown_timer_val >= 1.0f)
 				{
-					player.teleport_cooldown_timer_val = 0.0f;
-					player.inTeleportMode = false;
+					gen_entity_state.teleport_cooldown_timer_val = 0.0f;
+					gen_entity_state.inTeleportMode = false;
 				}
 				
 				rigidBody.velocity.x = (1/teleport_speed_boost)*rigidBody.velocity.x;
@@ -538,15 +540,15 @@ void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 				//reset animation for attack mode
 				animation.attackMode = -1;
 			
-				player.state = PlayerState::IDLE;
+				gen_entity_state.actor_state = EntityState::NONE;
 			}
 			
-			player.teleport_cooldown_timer_val = 0.0f;
+			gen_entity_state.teleport_cooldown_timer_val = 0.0f;
 		}
 		else
 		{
-			player.inTeleportMode = false;
-			player.teleport_cooldown_timer_val = 0.0f;
+			gen_entity_state.inTeleportMode = false;
+			gen_entity_state.teleport_cooldown_timer_val = 0.0f;
 		}
 		
 	}
@@ -606,10 +608,10 @@ void AttackPowerMechanicSystem::MoveAttackBoxesWithPlayer(float& dt)
 	{
 		
 		auto& transform = gCoordinator.GetComponent<Transform2D>(entity);
-		auto& player = gCoordinator.GetComponent<Player>(entity);
+		auto& gen_entity_state = gCoordinator.GetComponent<GeneralEnityState>(entity);
 		auto& animation = gCoordinator.GetComponent<Animation>(entity);
 		
-		if(player.attack_box.active)
+		if(gen_entity_state.attack_box.active)
 		{
 			switch(animation.attackMode)
 			{
@@ -620,20 +622,20 @@ void AttackPowerMechanicSystem::MoveAttackBoxesWithPlayer(float& dt)
 			
 					if(animation.face_dir == FaceDirection::EAST)
 					{
-						offset_x = player.attack_box_offset;
+						offset_x = gen_entity_state.attack_box_offset;
 					}
 					else if(animation.face_dir == FaceDirection::WEST)
 					{
-						offset_x = -player.attack_box_offset;
+						offset_x = -gen_entity_state.attack_box_offset;
 					}
 					
 					//activate collision box
-					player.attack_box.collisionBox.x = transform.position.x + offset_x; 
-					player.attack_box.collisionBox.y = transform.position.y + 20;
-					player.attack_box.collisionBox.width = 30;
-					player.attack_box.collisionBox.height = 30;
+					gen_entity_state.attack_box.collisionBox.x = transform.position.x + offset_x; 
+					gen_entity_state.attack_box.collisionBox.y = transform.position.y + 20;
+					gen_entity_state.attack_box.collisionBox.width = 30;
+					gen_entity_state.attack_box.collisionBox.height = 30;
 					
-					player.attack_box.player_num = player.player_num;
+					gen_entity_state.attack_box.player_num = gen_entity_state.entity_num;
 					
 					break;
 				}
@@ -652,12 +654,12 @@ void AttackPowerMechanicSystem::MoveAttackBoxesWithPlayer(float& dt)
 					}
 					
 					//activate collision box
-					player.attack_box.collisionBox.x = transform.position.x + offset_x; 
-					player.attack_box.collisionBox.y = transform.position.y ;
-					player.attack_box.collisionBox.width = 50;
-					player.attack_box.collisionBox.height = 50;
+					gen_entity_state.attack_box.collisionBox.x = transform.position.x + offset_x; 
+					gen_entity_state.attack_box.collisionBox.y = transform.position.y ;
+					gen_entity_state.attack_box.collisionBox.width = 50;
+					gen_entity_state.attack_box.collisionBox.height = 50;
 					
-					player.attack_box.player_num = player.player_num;
+					gen_entity_state.attack_box.player_num = gen_entity_state.entity_num;
 					break;
 				}
 				//big
@@ -675,12 +677,12 @@ void AttackPowerMechanicSystem::MoveAttackBoxesWithPlayer(float& dt)
 					}
 					
 					//activate attack collision box
-					player.attack_box.collisionBox.x = transform.position.x + offset_x; 
-					player.attack_box.collisionBox.y = transform.position.y ;
-					player.attack_box.collisionBox.width = 60;
-					player.attack_box.collisionBox.height = 120;
+					gen_entity_state.attack_box.collisionBox.x = transform.position.x + offset_x; 
+					gen_entity_state.attack_box.collisionBox.y = transform.position.y ;
+					gen_entity_state.attack_box.collisionBox.width = 60;
+					gen_entity_state.attack_box.collisionBox.height = 120;
 					
-					player.attack_box.player_num = player.player_num;
+					gen_entity_state.attack_box.player_num = gen_entity_state.entity_num;
 				}
 				default:{break;}
 			}
@@ -883,7 +885,7 @@ void AttackPowerMechanicSystem::CollisionDetectionBetweenPlayers()
 
 bool AttackPowerMechanicSystem::AreBothPlayersAlive(int& player_a_num, int& player_b_num)
 {
-	if(*player_alive_ptrs[player_a_num - 1] && *player_alive_ptrs[player_b_num - 1])
+	if(*entity_alive_ptrs[player_a_num] && *entity_alive_ptrs[player_b_num])
 	{
 		return true;
 	}
@@ -903,11 +905,11 @@ AttackEvent AttackPowerMechanicSystem::CheckCollisionBetween2Players(int& player
 		return attack_event;
 	}
 	
-	AttackBox* playerA_attackbox_ptr = player_attack_boxes_ptrs[player_a_num - 1];
-	AttackBox* playerB_attackbox_ptr = player_attack_boxes_ptrs[player_b_num - 1];
+	AttackBox* playerA_attackbox_ptr = entity_attack_boxes_ptrs[player_a_num];
+	AttackBox* playerB_attackbox_ptr = entity_attack_boxes_ptrs[player_b_num];
 	
-	Vector2* playerA_position_ptr = player_position_ptrs[player_a_num - 1];
-	Vector2* playerB_position_ptr = player_position_ptrs[player_b_num - 1];
+	Vector2* playerA_position_ptr = entity_position_ptrs[player_a_num];
+	Vector2* playerB_position_ptr = entity_position_ptrs[player_b_num];
 	
 	//player width and height
 	std::uint32_t width = 30;
@@ -951,46 +953,46 @@ void AttackPowerMechanicSystem::HandlePossibleCollisionBetweenPlayers(int& playe
 	attack_event = AttackPowerMechanicSystem::CheckCollisionBetween2Players(player_a_num, player_b_num);
 	
 	//if attack happened, and victim is not already in state of taking damage or in hurt invicible state
-	if(attack_event.attack && !*player_taking_damage_state_ptrs[attack_event.player_num_victim - 1] && !*player_hurt_invincible_ptrs[attack_event.player_num_victim - 1] )
+	if(attack_event.attack && !*entity_taking_damage_state_ptrs[attack_event.player_num_victim - 1] && !*entity_hurt_invincible_ptrs[attack_event.player_num_victim - 1] )
 	{
 		//std::cout << "Player " << int(attack_event.player_num_attacker) << " took away 10 HP from player " << int(attack_event.player_num_victim) << std::endl;
 		
 		//decrease health of victim player
-		*player_health_ptrs[attack_event.player_num_victim - 1] -= 10*(*player_attack_damage_factor_ptrs[attack_event.player_num_attacker - 1]);
+		*entity_health_ptrs[attack_event.player_num_victim] -= 10*(*entity_attack_damage_factor_ptrs[attack_event.player_num_attacker - 1]);
 		//set last hit by player variable for victim player
-		*player_last_hit_by_ptrs[attack_event.player_num_victim - 1] = attack_event.player_num_attacker;
+		*entity_last_hit_by_ptrs[attack_event.player_num_victim] = attack_event.player_num_attacker;
 		
-		*player_taking_damage_state_ptrs[attack_event.player_num_victim - 1] = true;
+		*entity_taking_damage_state_ptrs[attack_event.player_num_victim] = true;
 		
 		//knock back
 		float tiles_knock = 2.0f;
-		float knockback = tiles_knock*(*player_attack_damage_factor_ptrs[attack_event.player_num_attacker - 1]);
+		float knockback = tiles_knock*(*entity_attack_damage_factor_ptrs[attack_event.player_num_attacker - 1]);
 		float sign_x = 1;
 		float sign_y = 1;
 		
 		//if victim is to the left of attacker
-		if(player_position_ptrs[attack_event.player_num_victim - 1]->x < 
-			player_position_ptrs[attack_event.player_num_attacker - 1]->x)
+		if(entity_position_ptrs[attack_event.player_num_victim]->x < 
+			entity_position_ptrs[attack_event.player_num_attacker]->x)
 		{
 			sign_x = -1;
 		}
 		
 		//if victim is above the player
-		if(player_position_ptrs[attack_event.player_num_victim - 1]->y < 
-			player_position_ptrs[attack_event.player_num_attacker - 1]->y)
+		if(entity_position_ptrs[attack_event.player_num_victim]->y < 
+			entity_position_ptrs[attack_event.player_num_attacker]->y)
 		{
 			sign_y = -1;
 		}
 		
-		player_knockback[attack_event.player_num_victim - 1]->x = sign_x*knockback;
-		player_knockback[attack_event.player_num_victim - 1]->y = sign_y*knockback;
+		entity_knockback[attack_event.player_num_victim]->x = sign_x*knockback;
+		entity_knockback[attack_event.player_num_victim]->y = sign_y*knockback;
 		
 		//make sound
 		//player_sound_comp_types[attack_event.player_num_victim - 1]->sound_type = SoundType::GENERAL_SOUND;
 		//player_sound_comp_types[attack_event.player_num_victim - 1]->general_sound_id = GeneralSoundID::HIT_SOUND;
 		
-		player_sound_comp_types[attack_event.player_num_attacker - 1]->sound_type = SoundType::CHAR_SOUND;
-		player_sound_comp_types[attack_event.player_num_attacker - 1]->char_sound_id = CharSoundID::HIT_SOUND;
+		entity_sound_comp_types[attack_event.player_num_attacker]->sound_type = SoundType::CHAR_SOUND;
+		entity_sound_comp_types[attack_event.player_num_attacker]->char_sound_id = CharSoundID::HIT_SOUND;
 	}
 
 }
@@ -1025,16 +1027,15 @@ void AttackPowerMechanicSystem::ReactToCollisions(float& dt)
 			gen_entity_state.hurt_anim_time_count += dt;
 			
 			//put in hurt state
-			player.state = PlayerState::HURTING;
 			gen_entity_state.actor_state = EntityState::HURTING_KNOCKBACK;
 		}
 		else
 		{
-			if(player.state == PlayerState::HURTING)
+			if(gen_entity_state.actor_state == EntityState::HURTING_KNOCKBACK)
 			{
 				//knock back
-				rigidBody.velocity.x = knockback_factor*player_knockback[player.player_num - 1]->x;
-				rigidBody.velocity.y = knockback_factor*player_knockback[player.player_num - 1]->y;
+				rigidBody.velocity.x = knockback_factor*entity_knockback[gen_entity_state.entity_num]->x;
+				rigidBody.velocity.y = knockback_factor*entity_knockback[gen_entity_state.entity_num]->y;
 				
 				gen_entity_state.hurt_anim_time_count += dt;
 			
@@ -1043,7 +1044,6 @@ void AttackPowerMechanicSystem::ReactToCollisions(float& dt)
 				{
 					animation.hurt = false;
 					gen_entity_state.hurt_anim_time_count = 0;
-					player.state = PlayerState::IDLE;
 					gen_entity_state.actor_state = EntityState::NONE;
 					gen_entity_state.hurt_invincible = false;
 				}
@@ -1063,19 +1063,19 @@ void AttackPowerMechanicSystem::DebugRender()
 	for (auto const& entity : mEntities)
 	{
 		
-		auto& player = gCoordinator.GetComponent<Player>(entity);
+		auto& gen_entity_state = gCoordinator.GetComponent<GeneralEnityState>(entity);
 		
-		if(player.attack_box.active && debugRenderAttackBox)
+		if(gen_entity_state.attack_box.active && debugRenderAttackBox)
 		{
-			DrawRectangleRec(player.attack_box.collisionBox, RED);
+			DrawRectangleRec(gen_entity_state.attack_box.collisionBox, RED);
 		}
 		
 		
 		
 		if(debugDrawPowerRequest)
 		{
-			std::string req_num_str = std::to_string(player.requested_power);
-			DrawText(req_num_str.c_str(), 100 + 20*player.player_num, 20, 20, RED); 
+			std::string req_num_str = std::to_string(gen_entity_state.requested_power);
+			DrawText(req_num_str.c_str(), 100 + 20*gen_entity_state.entity_num, 20, 20, RED); 
 		}
 		
 	}
@@ -1093,18 +1093,18 @@ void AttackPowerMechanicSystem::HandleCollisionBetweenPlayerAttacksAndWorldTiles
 	for (auto const& entity : mEntities)
 	{
 		
-		auto& player = gCoordinator.GetComponent<Player>(entity);
+		auto& gen_entity_state = gCoordinator.GetComponent<GeneralEnityState>(entity);
 		auto& phy_type_comp = gCoordinator.GetComponent<PhysicsTypeComponent>(entity);
 		
 		float obj_x, obj_y, obj_width, obj_height;
 		
 		//use attack box for tile position if player is attacking
-		if(player.state == PlayerState::ATTACKING)
+		if(gen_entity_state.actor_state == EntityState::ATTACKING_NO_MOVE)
 		{
-			obj_x = player.attack_box.collisionBox.x;
-			obj_y = player.attack_box.collisionBox.y;
-			obj_width = player.attack_box.collisionBox.width;
-			obj_height = player.attack_box.collisionBox.height;
+			obj_x = gen_entity_state.attack_box.collisionBox.x;
+			obj_y = gen_entity_state.attack_box.collisionBox.y;
+			obj_width = gen_entity_state.attack_box.collisionBox.width;
+			obj_height = gen_entity_state.attack_box.collisionBox.height;
 		}
 		else
 		{

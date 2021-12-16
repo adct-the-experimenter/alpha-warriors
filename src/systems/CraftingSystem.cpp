@@ -29,9 +29,10 @@ void CraftingSystem::HandleTilePlacementInWorld(World* world_ptr)
 	{
 		
 		auto& player = gCoordinator.GetComponent<Player>(entity);
+		auto& gen_entity_state = gCoordinator.GetComponent<GeneralEnityState>(entity);
 		
 		//if player craft button pressed
-		if(player.craftButtonPressed)
+		if(gen_entity_state.craftButtonPressed)
 		{
 			
 			//get direction player is facing
@@ -107,7 +108,7 @@ void CraftingSystem::HandleTilePlacementInWorld(World* world_ptr)
 			}
 			
 			
-			player.craftButtonPressed = false;
+			gen_entity_state.craftButtonPressed = false;
 		}
 		
 	}

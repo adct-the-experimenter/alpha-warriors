@@ -19,9 +19,10 @@ void InputReactorSystem::Update(ControllerInput& input)
 		auto& inputReactor = gCoordinator.GetComponent<InputReact>(entity);
 		auto& rigidBody = gCoordinator.GetComponent<RigidBody2D>(entity);
 		auto& player = gCoordinator.GetComponent<Player>(entity);
+		auto& gen_entity_state = gCoordinator.GetComponent<GeneralEnityState>(entity);
 		
 		//skip player input if not alive
-		if(!player.alive){continue;}
+		if(!gen_entity_state.alive){continue;}
 		
 		switch(inputReactor.actor_type)
 		{
@@ -33,7 +34,7 @@ void InputReactorSystem::Update(ControllerInput& input)
 				
 				size_t i = player.player_num - 1;
 				//if player not in hurting state
-				if(player.state != PlayerState::HURTING)
+				if(gen_entity_state.actor_state != EntityState::HURTING_KNOCKBACK)
 				{
 					//if player's body is in flying state
 					if(rigidBody.in_flying_state)
@@ -42,13 +43,13 @@ void InputReactorSystem::Update(ControllerInput& input)
 						if(input.gamepads_vec[i].left_y_dir_axis == -1 
 							|| input.gamepads_vec[i].left_y_axis < -0.5*joystick_border)
 						{
-							rigidBody.velocity.y = -speed_factor*player.speed_factor;
+							rigidBody.velocity.y = -speed_factor*gen_entity_state.speed_factor;
 						}
 						//else if move left joystick down
 						else if(input.gamepads_vec[i].left_y_dir_axis == 1 
 							|| input.gamepads_vec[i].left_y_axis > 0.5*joystick_border)
 						{
-							rigidBody.velocity.y = speed_factor*player.speed_factor;
+							rigidBody.velocity.y = speed_factor*gen_entity_state.speed_factor;
 						}
 						else
 						{
@@ -61,13 +62,13 @@ void InputReactorSystem::Update(ControllerInput& input)
 					if(input.gamepads_vec[i].left_x_dir_axis == -1 
 						|| input.gamepads_vec[i].left_x_axis < -0.5*joystick_border )
 					{
-						rigidBody.velocity.x = -speed_factor*player.speed_factor;
+						rigidBody.velocity.x = -speed_factor*gen_entity_state.speed_factor;
 					}
 					//else if moved left joystick right
 					else if( input.gamepads_vec[i].left_x_dir_axis == 1 
 							|| input.gamepads_vec[i].left_x_axis > 0.5*joystick_border )
 					{
-						rigidBody.velocity.x = speed_factor*player.speed_factor;
+						rigidBody.velocity.x = speed_factor*gen_entity_state.speed_factor;
 					}
 					else
 					{
@@ -76,9 +77,9 @@ void InputReactorSystem::Update(ControllerInput& input)
 					
 					
 					//if jump button pressed
-					if( input.gamepads_vec[i].button_down == SDL_CONTROLLER_BUTTON_B && !player.inTeleportMode)
+					if( input.gamepads_vec[i].button_down == SDL_CONTROLLER_BUTTON_B && !gen_entity_state.inTeleportMode)
 					{
-						rigidBody.jump_speed = -player.jump_factor;
+						rigidBody.jump_speed = -gen_entity_state.jump_factor;
 					}
 					else
 					{
@@ -93,59 +94,59 @@ void InputReactorSystem::Update(ControllerInput& input)
 					
 					//if special power button pressed
 					if(input.gamepads_vec[i].button_up_released == SDL_CONTROLLER_BUTTON_RIGHTSHOULDER
-						&& !player.inTeleportMode)
+						&& !gen_entity_state.inTeleportMode)
 					{
-						player.powerButtonPressed = true;
+						gen_entity_state.powerButtonPressed = true;
 					}
 					//if regular attack button pressed
 					if(input.gamepads_vec[i].button_up_released == SDL_CONTROLLER_BUTTON_A
-						&& !player.inTeleportMode)
+						&& !gen_entity_state.inTeleportMode)
 					{
-						player.regularAttackButtonPressed = true;
+						gen_entity_state.regularAttackButtonPressed = true;
 					}
 					//if craft button pressed, any of the trigger buttons
 					if(input.gamepads_vec[i].button_up_released == SDL_CONTROLLER_BUTTON_X
-						&& !player.inTeleportMode)
+						&& !gen_entity_state.inTeleportMode)
 					{
-						player.craftButtonPressed = true;
+						gen_entity_state.craftButtonPressed = true;
 					}
 					//if energy beam button released 
 					if(input.gamepads_vec[i].button_up_released == SDL_CONTROLLER_BUTTON_Y
-						&& !player.inTeleportMode)
+						&& !gen_entity_state.inTeleportMode)
 					{
-						player.energyButtonPressed = true;
-						player.time_energy_button_held = 0.0f;
-						player.energyButtonHeld = false;
+						gen_entity_state.energyButtonPressed = true;
+						gen_entity_state.time_energy_button_held = 0.0f;
+						gen_entity_state.energyButtonHeld = false;
 					}
 					else
 					{
-						player.energyButtonPressed = false;
+						gen_entity_state.energyButtonPressed = false;
 					}
 					
 					//if energy button is held down
 					if(input.gamepads_vec[i].button_held_array[SDL_CONTROLLER_BUTTON_Y]
-						&& !player.inTeleportMode && input.gamepads_vec[i].button_up_released != SDL_CONTROLLER_BUTTON_Y)
+						&& !gen_entity_state.inTeleportMode && input.gamepads_vec[i].button_up_released != SDL_CONTROLLER_BUTTON_Y)
 					{
-						player.energyButtonHeld = true;
+						gen_entity_state.energyButtonHeld = true;
 					}
 					else
 					{
-						player.energyButtonHeld = false;
+						gen_entity_state.energyButtonHeld = false;
 					}
 					
 					//if teleport mode activation requested with button combination
 					if(input.gamepads_vec[i].button_held_array[SDL_CONTROLLER_BUTTON_B] &&
 					   input.gamepads_vec[i].button_held_array[SDL_CONTROLLER_BUTTON_A])
 					{
-						player.teleportButton = true;
-						player.time_energy_button_held = 0.0f;
-						player.energyButtonHeld = false;
-						player.energyButtonPressed = false;
-						player.regularAttackButtonPressed = false;
+						gen_entity_state.teleportButton = true;
+						gen_entity_state.time_energy_button_held = 0.0f;
+						gen_entity_state.energyButtonHeld = false;
+						gen_entity_state.energyButtonPressed = false;
+						gen_entity_state.regularAttackButtonPressed = false;
 					}
 					else
 					{
-						player.teleportButton = false;
+						gen_entity_state.teleportButton = false;
 					}
 				}				
 				

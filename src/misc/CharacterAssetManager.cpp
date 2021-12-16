@@ -457,16 +457,16 @@ bool CharacterAssetManager::LoadCharacterAssets(RequestedCharacters& req_chars, 
 		collision_box.height = stat.collision_box_height;
 		
 		
-		player.attack_box_offset = stat.attack_box_offset;
+		gen_entity_comp.attack_box_offset = stat.attack_box_offset;
 		
-		player.health_factor = stat.health_factor;
+		gen_entity_comp.health_factor = stat.health_factor;
 		gen_entity_comp.health = std::lround(gen_entity_comp.health * stat.health_factor);
 		
-		player.speed_factor = stat.speed_factor;
-		player.jump_factor = stat.jump_factor;
-		player.damage_factor = stat.damage_factor;
+		gen_entity_comp.speed_factor = stat.speed_factor;
+		gen_entity_comp.jump_factor = stat.jump_factor;
+		gen_entity_comp.damage_factor = stat.damage_factor;
 		
-		player.current_power = stat.special_power_choice;
+		gen_entity_comp.current_power = stat.special_power_choice;
 		
 		//std::cout << "Player " << i << " , req char index " << req_chars.char_texture_index_req[i] << " initialized!" 
 		//<< " from file " << filepaths_char_stats[ req_chars.char_texture_index_req[i] ] << std::endl;

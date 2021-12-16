@@ -992,7 +992,6 @@ void InitMainECS()
 	attackPowerMechanicSystem = gCoordinator.RegisterSystem<AttackPowerMechanicSystem>();
 	
 	Signature special_power_mechanic_sig;
-	special_power_mechanic_sig.set(gCoordinator.GetComponentType<Player>());
 	special_power_mechanic_sig.set(gCoordinator.GetComponentType<Transform2D>());
 	special_power_mechanic_sig.set(gCoordinator.GetComponentType<RigidBody2D>());
 	special_power_mechanic_sig.set(gCoordinator.GetComponentType<Animation>());

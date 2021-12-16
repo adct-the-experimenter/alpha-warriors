@@ -759,19 +759,13 @@ void PhysicsSystem::Update_MetroidVaniaMode(float& dt)
 				//if world one is active i.e. a player is in world one
 				if(world_one.in_active_use)
 				{
-					//if the collision box of player is in world one
-					if(collisionBox.world_id == 0)
-					{
-						
-						HandleCollisionWithWorldTiles(transform.position.x, transform.position.y,
+					HandleCollisionWithWorldTiles(transform.position.x, transform.position.y,
 											rigidBody.velocity.x, rigidBody.velocity.y,
 											dt,
 											collisionBox.width, collisionBox.height,
 											physics_type_comp.grounded,
 											&world_one,
 											gen_entity_state.actor_state);
-						
-					}
 					
 				}
 				

@@ -47,9 +47,6 @@ bool WorldSystem::Init()
 		auto& transform = gCoordinator.GetComponent<Transform2D>(entity);
 		auto& collisionBox = gCoordinator.GetComponent<CollisionBox>(entity);
 		
-		player.world_id = 0;
-		collisionBox.world_id = 0;
-		
 		//first 4 players are camera leads
 		if(player.player_num < 5)
 		{
@@ -390,7 +387,7 @@ void WorldSystem::logic(float& dt)
 			auto& player = gCoordinator.GetComponent<Player>(entity);
 			auto& gen_entity_state = gCoordinator.GetComponent<GeneralEnityState>(entity);
 			
-			player.alive = false;
+			gen_entity_state.alive = false;
 			gen_entity_state.health = 0;
 		}
 		//start world destruction sequence

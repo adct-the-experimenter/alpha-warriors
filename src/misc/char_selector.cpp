@@ -450,11 +450,8 @@ void CharacterSelector::DetermineConfirmationActions()
 			//collected_powers[fighter_boxes[i].special_power_choice] = 1;
 			
 			Player player_comp = {};
-			player_comp.player_num = static_cast<uint8_t>(i + 1),
-			player_comp.alive = true;
+			player_comp.player_num = static_cast<uint8_t>(i + 1);
 			
-			player_comp.state = PlayerState::IDLE;
-			player_comp.time_energy_button_held = 0.0f;
 			switch(i)
 			{
 				case 0:
@@ -532,8 +529,7 @@ void CharacterSelector::DetermineConfirmationActions()
 						*player_entities_vec.at(i),
 						CollisionBox{
 							.width = (std::uint32_t){30},
-							.height = (std::uint32_t){58},
-							.world_id = (std::uint8_t){0}
+							.height = (std::uint32_t){58}
 						}
 					);
 			
@@ -563,11 +559,14 @@ void CharacterSelector::DetermineConfirmationActions()
 					
 			//add general entity state component
 			GeneralEnityState gen_state_comp = {};
+			gen_state_comp.alive = true;
 			gen_state_comp.actor_type = EntityActorType::PLAYER;
 			gen_state_comp.actor_state = EntityState::NONE;
 			gen_state_comp.health = 30;
 			gen_state_comp.taking_damage = false;
 			gen_state_comp.hurt_invincible = false;
+			gen_state_comp.time_energy_button_held = 0.0f;
+			gen_state_comp.entity_num = static_cast<uint8_t>(i);
 			
 			gCoordinator.AddComponent(*player_entities_vec.at(i),
 										gen_state_comp);

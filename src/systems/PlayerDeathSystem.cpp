@@ -40,11 +40,11 @@ void PlayerDeathSystem::Update()
 			
 			if(gen_entity_state.health <= 0)
 			{
-				player.alive = false;
+				gen_entity_state.alive = false;
 				gen_entity_state.actor_state = EntityState::DEAD;
 			}
 			
-			if(!player.alive && render_comp.render)
+			if(!gen_entity_state.alive && render_comp.render)
 			{
 				players_alive[player.player_num - 1] = 0;
 				render_comp.render = false;
