@@ -228,7 +228,7 @@ struct EnergyAttacker
 	bool energy_button_released;
 };
 
-enum class PhysicalAttackerState : uint8_t {IDLE=0,CHARGING,READY_FOR_STRONG_HIT,LAUNCH_STRONG_HIT};
+enum class PhysicalAttackerState : uint8_t {IDLE=0,CHARGING,READY_FOR_STRONG_HIT,LAUNCH_STRONG_HIT, LAUNCH_WEAK_HIT};
 
 struct AttackBox
 {
@@ -243,6 +243,8 @@ struct RegularAttacker
 	AttackBox attack_box;
 	
 	PhysicalAttackerState state;
+	
+	bool attack_button_released;
 };
 
 struct Player

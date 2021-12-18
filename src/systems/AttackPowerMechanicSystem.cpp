@@ -74,6 +74,9 @@ static float speed_boost = 20.0f;
 
 static float teleport_speed_boost = 5.0f;
 
+static float strong_hit_factor = 1.5f;
+static float weak_hit_factor = 0.7f;
+
 void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 {
 	
@@ -102,7 +105,20 @@ void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 		&& gen_entity_state.actor_state != EntityState::ATTACKING_NO_MOVE)
 		{
 			reg_attack_button_released = true;
-			
+						
+			if(reg_attacker.state == PhysicalAttackerState::READY_FOR_STRONG_HIT)
+			{
+				reg_attacker.state = PhysicalAttackerState::LAUNCH_STRONG_HIT;		
+				gen_entity_state.damage_factor *= strong_hit_factor;
+			}
+			else if(reg_attacker.state == PhysicalAttackerState::IDLE ||
+					reg_attacker.state == PhysicalAttackerState::CHARGING)
+			{
+				reg_attacker.state = PhysicalAttackerState::LAUNCH_WEAK_HIT;
+				
+				gen_entity_state.damage_factor *= weak_hit_factor;
+			}
+						
 			//if attack box is not active i.e. player is not attacking already
 			if(!reg_attacker.attack_box.active)
 			{
@@ -114,21 +130,33 @@ void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 				gen_entity_state.actor_state = EntityState::ATTACKING_NO_MOVE;
 			}
 			
+			gen_entity_state.time_reg_attack_button_held = 0.0f;
 			gen_entity_state.regularAttackButtonPressed = false;
-			
+			gen_entity_state.regularAttackButtonHeld = false;
 			
 		}
 		
 		//if entity holds attack button 
 		if(!gen_entity_state.regularAttackButtonPressed && gen_entity_state.regularAttackButtonHeld
-		&& reg_attack_button_released
+		&& !reg_attack_button_released
 		&& !gen_entity_state.powerButtonPressed  
 		&& !gen_entity_state.energyButtonPressed && !gen_entity_state.energyButtonHeld
 		&& !gen_entity_state.taking_damage 
 		&& gen_entity_state.actor_state != EntityState::HURTING_KNOCKBACK
 		&& gen_entity_state.actor_state != EntityState::ATTACKING_NO_MOVE)
 		{
+			reg_attacker.attack_button_released = false;
 			
+			//if regular attack button held down for 1 second
+			if(gen_entity_state.time_reg_attack_button_held >= 1.5f)
+			{
+				reg_attacker.state = PhysicalAttackerState::READY_FOR_STRONG_HIT;
+			}
+			else
+			{
+				gen_entity_state.time_reg_attack_button_held += dt;
+				reg_attacker.state = PhysicalAttackerState::CHARGING;
+			}
 			
 		}
 		
@@ -248,7 +276,8 @@ void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 			if(!rigidBody.velocity.y){rigidBody.velocity.x = 0.0f;}
 			
 			//if more than 0.5 seconds has passed
-			if(gen_entity_state.regular_attack_cooldown_timer_val >= 0.5f)
+			if(gen_entity_state.regular_attack_cooldown_timer_val >= 0.6f
+				&& reg_attacker.state == PhysicalAttackerState::LAUNCH_STRONG_HIT)
 			{
 				//reset attackbox active
 				reg_attacker.attack_box.active = false;
@@ -258,6 +287,23 @@ void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 				animation.attackMode = -1;
 				
 				gen_entity_state.actor_state = EntityState::NONE;
+				reg_attacker.state = PhysicalAttackerState::IDLE;
+				gen_entity_state.damage_factor /= strong_hit_factor;
+			}
+			
+			if(gen_entity_state.regular_attack_cooldown_timer_val >= 0.25f
+				&& reg_attacker.state == PhysicalAttackerState::LAUNCH_WEAK_HIT)
+			{
+				//reset attackbox active
+				reg_attacker.attack_box.active = false;
+				//reset timer value
+				gen_entity_state.regular_attack_cooldown_timer_val = 0;
+				//reset animation
+				animation.attackMode = -1;
+				
+				gen_entity_state.actor_state = EntityState::NONE;
+				reg_attacker.state = PhysicalAttackerState::IDLE;
+				gen_entity_state.damage_factor /= weak_hit_factor;
 			}
 		}
 		
@@ -697,6 +743,8 @@ AttackEvent AttackPowerMechanicSystem::CheckCollisionBetween2Players(int& player
 	return attack_event;
 }
 
+static const int16_t base_health_reduction_factor = 10;
+
 void AttackPowerMechanicSystem::HandlePossibleCollisionBetweenPlayers(int& player_a_num, int& player_b_num)
 {
 	AttackEvent attack_event;
@@ -708,7 +756,7 @@ void AttackPowerMechanicSystem::HandlePossibleCollisionBetweenPlayers(int& playe
 		//std::cout << "Player " << int(attack_event.player_num_attacker) << " took away 10 HP from player " << int(attack_event.player_num_victim) << std::endl;
 		
 		//decrease health of victim player
-		*entity_health_ptrs[attack_event.player_num_victim] -= 10*(*entity_attack_damage_factor_ptrs[attack_event.player_num_attacker]);
+		*entity_health_ptrs[attack_event.player_num_victim] -= base_health_reduction_factor*(*entity_attack_damage_factor_ptrs[attack_event.player_num_attacker]);
 		//set last hit by player variable for victim player
 		*entity_last_hit_by_ptrs[attack_event.player_num_victim] = attack_event.player_num_attacker;
 		

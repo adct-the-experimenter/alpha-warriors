@@ -81,7 +81,6 @@ void EnergyAttackSystem::HandleEnergySetupActivationFromInput(float& dt)
 		&& gen_entity_state.actor_state != EntityState::HURTING_KNOCKBACK
 		&& gen_entity_state.actor_state != EntityState::ATTACKING_NO_MOVE)
 		{			
-			auto& energy_attacker = gCoordinator.GetComponent<EnergyAttacker>(entity);
 			energy_button_released = true;
 			
 			energy_attacker.energy_button_released = true;
@@ -162,9 +161,7 @@ void EnergyAttackSystem::HandleEnergySetupActivationFromInput(float& dt)
 		&& gen_entity_state.actor_state != EntityState::HURTING_KNOCKBACK
 		&& gen_entity_state.actor_state != EntityState::ATTACKING_NO_MOVE)
 		{
-			
-			auto& energy_attacker = gCoordinator.GetComponent<EnergyAttacker>(entity);
-			
+						
 			energy_attacker.energy_button_released = false;
 			
 			//if energy button held down for 1 second

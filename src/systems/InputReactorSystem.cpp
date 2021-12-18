@@ -98,18 +98,38 @@ void InputReactorSystem::Update(ControllerInput& input)
 					{
 						gen_entity_state.powerButtonPressed = true;
 					}
-					//if regular attack button pressed
+					//if regular attack button is released
 					if(input.gamepads_vec[i].button_up_released == SDL_CONTROLLER_BUTTON_A
 						&& !gen_entity_state.inTeleportMode)
 					{
 						gen_entity_state.regularAttackButtonPressed = true;
+						gen_entity_state.regularAttackButtonHeld = false;
+						gen_entity_state.time_reg_attack_button_held = 0.0f;
+						
 					}
+					else
+					{
+						gen_entity_state.regularAttackButtonPressed = false;
+					}
+					
+					//if regular attack button held down
+					if(input.gamepads_vec[i].button_held_array[SDL_CONTROLLER_BUTTON_A]
+						&& !gen_entity_state.inTeleportMode && input.gamepads_vec[i].button_up_released != SDL_CONTROLLER_BUTTON_A)
+					{
+						gen_entity_state.regularAttackButtonHeld = true;
+					}
+					else
+					{
+						gen_entity_state.regularAttackButtonHeld = false;
+					}
+					
 					//if craft button pressed, any of the trigger buttons
 					if(input.gamepads_vec[i].button_up_released == SDL_CONTROLLER_BUTTON_X
 						&& !gen_entity_state.inTeleportMode)
 					{
 						gen_entity_state.craftButtonPressed = true;
 					}
+					
 					//if energy beam button released 
 					if(input.gamepads_vec[i].button_up_released == SDL_CONTROLLER_BUTTON_Y
 						&& !gen_entity_state.inTeleportMode)
