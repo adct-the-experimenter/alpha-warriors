@@ -87,9 +87,19 @@ void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 		//skip if not alive
 		if(gen_entity_state.actor_state == EntityState::DEAD){continue;}
 		
-		//if player pressed attack button and isn't in hurting state and alive.
-		if(gen_entity_state.regularAttackButtonPressed && gen_entity_state.alive && !gen_entity_state.taking_damage && gen_entity_state.actor_state != EntityState::HURTING_KNOCKBACK)
+		bool reg_attack_button_released = false;
+		
+		//if entity pressed attack button and isn't in hurting state, or attacking, and alive.
+		if(gen_entity_state.regularAttackButtonPressed && !gen_entity_state.regularAttackButtonHeld
+		&& !gen_entity_state.powerButtonPressed
+		&& !gen_entity_state.energyButtonPressed && !gen_entity_state.energyButtonHeld 
+		&& gen_entity_state.alive 
+		&& !gen_entity_state.taking_damage 
+		&& gen_entity_state.actor_state != EntityState::HURTING_KNOCKBACK
+		&& gen_entity_state.actor_state != EntityState::ATTACKING_NO_MOVE)
 		{
+			reg_attack_button_released = true;
+			
 			//if attack box is not active i.e. player is not attacking already
 			if(!gen_entity_state.attack_box.active)
 			{
@@ -102,10 +112,31 @@ void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 			}
 			
 			gen_entity_state.regularAttackButtonPressed = false;
+			
+			auto& energy_attacker = gCoordinator.GetComponent<EnergyAttacker>(entity);
+			gen_entity_state.energyButtonPressed = false;
+			gen_entity_state.energyButtonHeld = false;
+			energy_attacker.energy_button_released = false;
+			energy_attacker.state = EnergyAttackerState::IDLE;
+		}
+		
+		//if entity holds attack button 
+		if(!gen_entity_state.regularAttackButtonPressed && gen_entity_state.regularAttackButtonHeld
+		&& !gen_entity_state.powerButtonPressed  
+		&& !gen_entity_state.energyButtonPressed && !gen_entity_state.energyButtonHeld
+		&& !gen_entity_state.taking_damage 
+		&& gen_entity_state.actor_state != EntityState::HURTING_KNOCKBACK
+		&& gen_entity_state.actor_state != EntityState::ATTACKING_NO_MOVE)
+		{
+			
 		}
 		
 		//change and/or activate current power based on input
-		else if(gen_entity_state.powerButtonPressed && gen_entity_state.requested_power < 8 && gen_entity_state.alive && !gen_entity_state.taking_damage && gen_entity_state.actor_state != EntityState::HURTING_KNOCKBACK)
+		if(!gen_entity_state.regularAttackButtonPressed && !gen_entity_state.regularAttackButtonHeld
+		&& gen_entity_state.powerButtonPressed 
+		&& gen_entity_state.requested_power < 8 && gen_entity_state.alive && !gen_entity_state.taking_damage 
+		&& gen_entity_state.actor_state != EntityState::HURTING_KNOCKBACK
+		&& gen_entity_state.actor_state != EntityState::ATTACKING_NO_MOVE)
 		{
 			
 			//std::cout << "Player " << int(player.player_num) << " requested this power: " << int(player.requested_power) << std::endl;
@@ -120,7 +151,6 @@ void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 					gen_entity_state.actor_state = EntityState::ATTACKING_NO_MOVE;
 					
 				}
-				
 				
 			}
 			else
@@ -206,7 +236,11 @@ void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 		bool energy_button_released = false;
 		
 		//launch small energy beam if energy beam button pressed, and player is not taking damage
-		if(gen_entity_state.energyButtonPressed && !gen_entity_state.taking_damage && !gen_entity_state.energyButtonHeld)
+		if(!gen_entity_state.regularAttackButtonPressed && !gen_entity_state.regularAttackButtonHeld 
+		&& gen_entity_state.energyButtonPressed && !gen_entity_state.taking_damage 
+		&& !gen_entity_state.energyButtonHeld
+		&& gen_entity_state.actor_state != EntityState::HURTING_KNOCKBACK
+		&& gen_entity_state.actor_state != EntityState::ATTACKING_NO_MOVE)
 		{			
 			auto& energy_attacker = gCoordinator.GetComponent<EnergyAttacker>(entity);
 			energy_button_released = true;
@@ -281,7 +315,13 @@ void AttackPowerMechanicSystem::HandlePowerActivation(float& dt)
 			energy_attacker.energy_button_released = false;
 		}
 		
-		if(gen_entity_state.energyButtonHeld && !gen_entity_state.taking_damage && !energy_button_released)
+		//if energy button is held
+		if(gen_entity_state.energyButtonHeld
+		&& !gen_entity_state.regularAttackButtonPressed && !gen_entity_state.regularAttackButtonHeld
+		&& !gen_entity_state.taking_damage 
+		&& !energy_button_released
+		&& gen_entity_state.actor_state != EntityState::HURTING_KNOCKBACK
+		&& gen_entity_state.actor_state != EntityState::ATTACKING_NO_MOVE)
 		{
 			
 			auto& energy_attacker = gCoordinator.GetComponent<EnergyAttacker>(entity);
@@ -700,7 +740,7 @@ void AttackPowerMechanicSystem::CollisionDetectionBetweenPlayers()
 	for(uint ent_it = 1; ent_it < MAX_NUMBER_OF_ENTITIES_IN_GAME; ent_it++)
 	{
 		for(uint i = 0; i < ent_it;i++)
-		{
+		{			
 			int entity_a_num = i;
 			int entity_b_num = ent_it;
 			AttackPowerMechanicSystem::HandlePossibleCollisionBetweenPlayers(entity_a_num,entity_b_num);

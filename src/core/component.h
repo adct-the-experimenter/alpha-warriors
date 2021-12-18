@@ -101,16 +101,20 @@ struct GeneralEnityState
 	//amount which component is pushed/knocked back
 	Vector2 victim_knockback_amt;
 	
-//input for attack systems
 	bool alive;
+	
+//input for attack systems
 	
 	//parameters related to power
 	
 	//indicate if player pressed power button
 	bool powerButtonPressed;
 	
-	//indicate if player pressed regular attack button
+	//indicate if player pressed regular(physical) attack button
 	bool regularAttackButtonPressed;
+	
+	bool regularAttackButtonHeld;
+	float time_reg_attack_button_held;
 	
 	//indicate if player pressed craft button
 	bool craftButtonPressed;
@@ -118,14 +122,16 @@ struct GeneralEnityState
 	//indicate if player pressed the energy beam button
 	bool energyButtonPressed;
 	
+	bool energyButtonHeld;
+	float time_energy_button_held;
+	
 	//indicate if player pressed teleport combination button
 	bool teleportButton;
 	//indicate if player in teleport
 	bool inTeleportMode;
 	float teleport_cooldown_timer_val;
 	
-	bool energyButtonHeld;
-	float time_energy_button_held;
+	
 	
 	//bitset to indicate which power a player has
 	std::bitset <8> collected_powers;
