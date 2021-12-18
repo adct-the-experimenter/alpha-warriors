@@ -71,12 +71,7 @@ struct CollisionBox
 enum class EntityActorType : std::uint8_t {OBJECT = 0,PLAYER,ENEMY};
 enum class EntityState : std::uint8_t {NONE=0,ATTACKING_NO_MOVE,HURTING_KNOCKBACK,DEAD};
 
-struct AttackBox
-{
-	bool active = false;
-	std::uint8_t player_num;
-	Rectangle collisionBox;
-};
+
 
 struct GeneralEnityState
 {
@@ -154,8 +149,7 @@ struct GeneralEnityState
 	//indicate which player last hit this player
 	std::uint8_t last_hit_by_entity_num;
 	
-	//attack collision box
-	AttackBox attack_box;
+	
 		
 	//character-specific variables for player
 	float attack_box_offset;
@@ -234,6 +228,22 @@ struct EnergyAttacker
 	bool energy_button_released;
 };
 
+enum class PhysicalAttackerState : uint8_t {IDLE=0,CHARGING,READY_FOR_STRONG_HIT,LAUNCH_STRONG_HIT};
+
+struct AttackBox
+{
+	bool active = false;
+	std::uint8_t player_num;
+	Rectangle collisionBox;
+};
+
+struct RegularAttacker
+{
+	//attack collision box
+	AttackBox attack_box;
+	
+	PhysicalAttackerState state;
+};
 
 struct Player
 {

@@ -521,6 +521,7 @@ void logic()
 		{
 			//handle activating powers based on input
 			attackPowerMechanicSystem->HandlePowerActivation(dt);
+			energyAttackSystem->HandleEnergySetupActivationFromInput(dt);
 			energyAttackSystem->HandleEnergyBeamActivation();
 			
 			//move attack boxes with players
@@ -577,6 +578,7 @@ void logic()
 			
 			//handle activating powers based on input
 			attackPowerMechanicSystem->HandlePowerActivation(dt);
+			energyAttackSystem->HandleEnergySetupActivationFromInput(dt);
 			energyAttackSystem->HandleEnergyBeamActivation();
 			
 			//move attack boxes with players
@@ -925,6 +927,7 @@ void InitMainECS()
 	gCoordinator.RegisterComponent<SoundComponent>();
 	gCoordinator.RegisterComponent<GeneralEnityState>();
 	gCoordinator.RegisterComponent<EnergyAttacker>();
+	gCoordinator.RegisterComponent<RegularAttacker>();
 	
 	//make rendering system that only reacts to entities
 	//with render info component
@@ -998,7 +1001,7 @@ void InitMainECS()
 	special_power_mechanic_sig.set(gCoordinator.GetComponentType<CollisionBox>());
 	special_power_mechanic_sig.set(gCoordinator.GetComponentType<SoundComponent>());
 	special_power_mechanic_sig.set(gCoordinator.GetComponentType<GeneralEnityState>());
-	special_power_mechanic_sig.set(gCoordinator.GetComponentType<EnergyAttacker>());
+	special_power_mechanic_sig.set(gCoordinator.GetComponentType<RegularAttacker>());
 	gCoordinator.SetSystemSignature<AttackPowerMechanicSystem>(special_power_mechanic_sig);
 	
 	//make crafting system

@@ -571,13 +571,21 @@ void CharacterSelector::DetermineConfirmationActions()
 			gCoordinator.AddComponent(*player_entities_vec.at(i),
 										gen_state_comp);
 										
-			//add genergy attacker component
+			//add energy attacker component
 			EnergyAttacker energy_attacker_comp = {};
 			
 			energy_attacker_comp.queue_id = static_cast<uint8_t>(i);
 			
 			gCoordinator.AddComponent(*player_entities_vec.at(i),
 										energy_attacker_comp);
+										
+			//add regular attacker component
+			RegularAttacker reg_attacker_comp = {};
+			
+			reg_attacker_comp.state = PhysicalAttackerState::IDLE;
+						
+			gCoordinator.AddComponent(*player_entities_vec.at(i),
+										reg_attacker_comp);
 		}
 		
 		move_next_state = true;

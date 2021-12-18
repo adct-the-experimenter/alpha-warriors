@@ -67,6 +67,9 @@ public:
 //function to initialize energy beams
 void Init();
 
+//function to handle setup of activation of energy beam from input
+void HandleEnergySetupActivationFromInput(float& dt);
+
 //function to handle activation of energy beam
 void HandleEnergyBeamActivation();
 
