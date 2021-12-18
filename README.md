@@ -36,13 +36,13 @@ Entity Component System code adapted from Austin Morlan's ECS code.
 
 ## Controls
 
-A = Attack
+A = Attack, hold for strong hit
 
 B = Jump
 
 Y = Energy Projectile, Hold for large energy blast
 
-Right Shoulder/Trigger = Special
+Right Shoulder/Trigger = Special Attack
 
 Left Shoulder/Trigger = Enable/Disable flying
 
