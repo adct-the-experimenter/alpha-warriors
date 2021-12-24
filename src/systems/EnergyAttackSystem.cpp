@@ -84,6 +84,7 @@ void EnergyAttackSystem::HandleEnergySetupActivationFromInput(float& dt)
 			energy_button_released = true;
 			
 			energy_attacker.energy_button_released = true;
+			energy_attacker_energy_button_pressed[energy_attacker.queue_id] = true;
 			
 			//if player is ready to send large energy blast
 			if(energy_attacker.state == EnergyAttackerState::READY_TO_SEND_LARGE_BLAST)
@@ -148,9 +149,9 @@ void EnergyAttackSystem::HandleEnergySetupActivationFromInput(float& dt)
 		}
 		else
 		{
-			
+			energy_attacker.energy_button_released = gen_entity_state.energyButtonPressed && !gen_entity_state.energyButtonHeld;
 			gen_entity_state.energyButtonPressed = false;
-			energy_attacker.energy_button_released = false;
+			
 		}
 		
 		//if energy button is held
@@ -194,6 +195,9 @@ void EnergyAttackSystem::HandleEnergySetupActivationFromInput(float& dt)
 			gen_entity_state.energyButtonHeld = false;
 			
 		}
+		
+		//std::cout << " before handle energy beam activation: \n\tenergy attacker " << int(energy_attacker.queue_id) 
+		//			<< " energy button press: " << energy_attacker_energy_button_pressed[energy_attacker.queue_id] << std::endl;
 	}
 }
 
@@ -324,8 +328,12 @@ void EnergyAttackSystem::HandleEnergyBeamActivation()
 			//for beam struggle
 			energy_attacker_energy_button_pressed[energy_attacker.queue_id] = energy_attacker.energy_button_released;
 			
-			//std::cout << "energy attacker " << int(energy_attacker.queue_id) 
-			//		<< " energy button press: " << energy_attacker.send_energy_beam << std::endl;
+			//std::cout << "in beam struggle input: \n\tenergy attacker " << int(energy_attacker.queue_id) 
+			//		<< " energy button press: " << energy_attacker_energy_button_pressed[energy_attacker.queue_id] << std::endl;
+					
+			energy_attacker.energy_button_released = false;
+			
+			
 		}
 		
 		
