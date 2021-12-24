@@ -56,6 +56,26 @@ void InputReactorSystem::Update(ControllerInput& input)
 							rigidBody.velocity.y = 0.0f;
 						}
 					}
+					//if player is not in flying state and not falling
+					else if(!rigidBody.in_flying_state && !rigidBody.velocity.y)
+					{
+						//if moved left joystick up
+						if(input.gamepads_vec[i].left_y_dir_axis == -1 
+							|| input.gamepads_vec[i].left_y_axis < -0.5*joystick_border)
+						{
+							rigidBody.velocity.y = -0.1f;
+						}
+						//else if move left joystick down
+						else if(input.gamepads_vec[i].left_y_dir_axis == 1 
+							|| input.gamepads_vec[i].left_y_axis > 0.5*joystick_border)
+						{
+							rigidBody.velocity.y = 0.1f;
+						}
+						else
+						{
+							rigidBody.velocity.y = 0.0f;
+						}
+					}
 					
 					
 					//if moved left joystick left
