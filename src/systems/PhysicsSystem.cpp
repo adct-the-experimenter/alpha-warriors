@@ -193,7 +193,8 @@ static void CheckCollisionWithPlatforms(float& obj_x, float& obj_y,
 					else
 					{
 						
-						PushUp(obj_y,obj_vy,dt);
+						obj_vy = 0;
+						obj_y = main_stage.collision_rect_array[i].rect.y - obj_height;
 						
 					}
 											
