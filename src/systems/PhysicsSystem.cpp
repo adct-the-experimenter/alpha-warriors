@@ -723,7 +723,8 @@ void PhysicsSystem::Update_MetroidVaniaMode(float& dt)
 				}
 				
 				//if entity is flying and performing a no move attack, stop player.
-				if(gen_entity_state.actor_state == EntityState::ATTACKING_NO_MOVE )
+				if(gen_entity_state.actor_state == EntityState::ATTACKING_NO_MOVE && 
+				   rigidBody.in_flying_state)
 				{
 					rigidBody.velocity.x = 0;
 					rigidBody.velocity.y = 0;
