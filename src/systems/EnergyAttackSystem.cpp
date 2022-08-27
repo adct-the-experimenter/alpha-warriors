@@ -1078,21 +1078,10 @@ void EnergyAttackSystem::RenderEnergyBeams_VersusMode(CustomCamera* camera_ptr)
 	}
 }
 
+static bool beam_struggle_sound = false;
 
 void EnergyAttackSystem::SoundEnergyBeams_VersusMode()
 {
-	//check if beam struggle is happening
-	bool beam_struggle_happening = false;
-	
-	for( auto& blast : large_energy_pool_vector)
-	{
-		if(blast.in_beam_struggle)
-		{
-			beam_struggle_happening = true;
-			break; //stop loop
-		}
-		
-	}
 	
 	
 	//sounds specific to energy attacker state 
@@ -1113,6 +1102,12 @@ void EnergyAttackSystem::SoundEnergyBeams_VersusMode()
 			PlayGeneralSound(GeneralSoundID::SMALL_ENERGY_PROJECTILE);
 		}
 		
+	}
+	
+	if(beam_struggle_sound)
+	{
+		PlayGeneralSound(GeneralSoundID::BEAM_STRUGGLE_SAMPLE);
+		beam_struggle_sound = false;
 	}
 	
 }
@@ -1310,12 +1305,14 @@ void EnergyAttackSystem::HandleBeamStruggleBetweenTwoBeams(LargeEnergyBlast& bla
 	//if both players pressed on same frame
 	if(blast_one_energy_press && blast_two_energy_press)
 	{
+		beam_struggle_sound = false;
 		//do nothing
 		return;
 	}
 	//if energy attackers both did not press
 	else if(!blast_one_energy_press && !blast_two_energy_press)
 	{
+		beam_struggle_sound = false;
 		//do nothing
 		return;
 	}
@@ -1325,6 +1322,7 @@ void EnergyAttackSystem::HandleBeamStruggleBetweenTwoBeams(LargeEnergyBlast& bla
 		//grow blast one
 		grow_blast = &blast_one;
 		weaken_blast = &blast_two;
+		beam_struggle_sound = true;
 		//std::cout << "blast one attack grows.\n";
 	}
 	//else if blast two player pressed and the other did not
@@ -1333,6 +1331,7 @@ void EnergyAttackSystem::HandleBeamStruggleBetweenTwoBeams(LargeEnergyBlast& bla
 		//grow blast two
 		grow_blast = &blast_two;
 		weaken_blast = &blast_one;
+		beam_struggle_sound = true;
 		//std::cout << "blast two attack grows.\n";
 	}
 	
