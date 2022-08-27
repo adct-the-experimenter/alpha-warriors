@@ -13,6 +13,8 @@ class PlayerDeathSystem : public System
 {
 public:
 	void Init(std::uint8_t num_players);
+	
+	void RenderHealthBars_2PlayerFight();
 
 	void Update();
 	

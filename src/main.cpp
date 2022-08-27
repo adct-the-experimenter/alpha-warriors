@@ -745,6 +745,7 @@ void render()
 		    //render any entity that has render component
 			renderSystem->Update();
 			
+			playerDeathSystem->RenderHealthBars_2PlayerFight();
 			
 			if(gNumPlayers == 1)
 			{
