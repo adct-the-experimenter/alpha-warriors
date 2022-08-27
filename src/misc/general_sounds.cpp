@@ -7,5 +7,7 @@ Sound general_sounds[NUMBER_OF_GENERAL_SOUNDS];
 std::string general_sound_audio_files_paths[NUMBER_OF_GENERAL_SOUNDS] = 
 {
 	("/general_sounds/test.wav"),
-	("/general_sounds/teleport1.wav")
+	("/general_sounds/teleport1.wav"),
+	("/general_sounds/energy-blast-quick.wav"),
+	("/general_sounds/energy-beam-struggle-sample.wav")
 };

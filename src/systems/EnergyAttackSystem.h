@@ -7,6 +7,7 @@
 
 #include "misc/camera.h"
 
+
 #include <queue>
 #include <array>
 
@@ -84,6 +85,9 @@ void HandleCollisionWithWorldTiles();
 
 //function to handle collision against player or enemies
 void HandleCollisionWithGeneralActors();
+
+//function to make energy beam soudns
+void SoundEnergyBeams_VersusMode();
 
 //function to draw energy beams
 void RenderEnergyBeams_VersusMode(CustomCamera* camera_ptr);

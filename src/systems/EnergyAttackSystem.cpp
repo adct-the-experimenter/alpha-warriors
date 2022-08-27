@@ -11,6 +11,8 @@
 
 #include "misc/level_maps.h"
 
+#include "misc/general_sounds.h" //for playing general sound for energy attacks
+
 extern Coordinator gCoordinator;
 
 void EnergyAttackSystem::Init()
@@ -1074,6 +1076,45 @@ void EnergyAttackSystem::RenderEnergyBeams_VersusMode(CustomCamera* camera_ptr)
 		}
 					
 	}
+}
+
+
+void EnergyAttackSystem::SoundEnergyBeams_VersusMode()
+{
+	//check if beam struggle is happening
+	bool beam_struggle_happening = false;
+	
+	for( auto& blast : large_energy_pool_vector)
+	{
+		if(blast.in_beam_struggle)
+		{
+			beam_struggle_happening = true;
+			break; //stop loop
+		}
+		
+	}
+	
+	
+	//sounds specific to energy attacker state 
+	for(auto entity : mEntities)
+	{
+		auto& energy_attacker = gCoordinator.GetComponent<EnergyAttacker>(entity);
+		
+		//if energy attacker is charging
+		if(energy_attacker.state == EnergyAttackerState::CHARGING)
+		{
+			//play energy charging sound
+		}
+		//if energy attacker sent a small energy projectile
+		else if(energy_attacker.energy_button_released && 
+				energy_attacker.state != EnergyAttackerState::READY_TO_SEND_LARGE_BLAST)
+		{
+			//play small energy projectile sound
+			PlayGeneralSound(GeneralSoundID::SMALL_ENERGY_PROJECTILE);
+		}
+		
+	}
+	
 }
 
 void EnergyAttackSystem::RenderEnergyBeams_FreeplayMode(CameraManager& camera_manager_ptr)

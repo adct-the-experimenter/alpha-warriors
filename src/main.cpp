@@ -834,18 +834,15 @@ void sound()
 			//update music stream for stage music playing
 			UpdateMusicStream(main_stage.stage_music);
 			
-			//if at the end of music stream
-			//if (IsKeyPressed(KEY_SPACE))
-			//{
-			//	StopMusicStream(music);
-			//	PlayMusicStream(music);
-			//}
-			
+			//play sounds in energy attack system
+			energyAttackSystem->SoundEnergyBeams_VersusMode();
 			
 			//load buffer and			
 			//play sounds in buffer			
 			soundSystem->Update_VersusMode();
-						
+			
+			
+			
 			break;
 		}
 		case GameState::METROIDVANIA_GAME:
